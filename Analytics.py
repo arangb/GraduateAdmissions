@@ -1,11 +1,6 @@
 
-# coding: utf-8
-
-# In[70]:
-
-
-get_ipython().run_line_magic('matplotlib', 'inline')
-
+## Uncomment for Jupyter notebook:
+## %matplotlib inline 
 import pandas
 import numpy as np
 import matplotlib as mpl
@@ -13,10 +8,6 @@ import matplotlib.pyplot as plt
 from wordcloud import WordCloud, STOPWORDS
 
 mpl.rc('font', family='sans-serif', size=14)
-
-
-# In[71]:
-
 
 #apps = pandas.read_excel('180108_data.xlsx')
 apps = pandas.read_excel('admitted18_stats.xlsx')
@@ -28,9 +19,6 @@ apps = pandas.read_excel('admitted18_stats.xlsx')
 # # GPA and GRE Breakdowns
 # 
 # ### Total Scores
-
-# In[72]:
-
 
 # Plot correlation between GRE and GPA:
 gres=apps['GRE Subject Total Score %'].fillna(0.)
@@ -93,9 +81,6 @@ axHisty.set_ylim(axScatter.get_ylim())
 plt.savefig('00GAC-GPAGREcorr-projections.png')
 
 
-# In[73]:
-
-
 plt.figure() # New figure
 fig, ax = plt.subplots(figsize=(10, 10))
 # Plot correlation between GRE and GPA:
@@ -114,9 +99,6 @@ plt.tight_layout()
 plt.savefig('00GAC-GPAGREcorr-scatter.png')
 
 
-# In[74]:
-
-
 axes = apps.hist(column=['GRE Verbal Percentile',
                          'GRE Subject Total Score %',
                          'GRE Analytical Writing Percentile',
@@ -132,11 +114,7 @@ fig = plt.gcf()
 fig.tight_layout()
 fig.savefig("01GAC-GREBreakdown.png")
 
-
 # ### Breakdown by Gender
-
-# In[75]:
-
 
 # Print nice table with summary of gender and race
 print(pandas.crosstab(apps.Sex,apps.Race.fillna('N/R'),margins=True))
@@ -172,9 +150,6 @@ fig.savefig("02GAC-GenderBreakdown.png")
 
 
 # ### URM Breakdown
-
-# In[76]:
-
 
 # Print nice table with summary of gender and URM
 print(pandas.crosstab(apps.Sex,apps.URM.fillna('N/R'),margins=True))
@@ -213,9 +188,6 @@ fig.savefig("03GAC-URMBreakdown.png")
 # 
 # Sort students by interest, dropping records where interest is not explicitly mentioned in the students' personal statement.
 
-# In[86]:
-
-
 # Grab a full table of interests from what they clicked or based on personal statements, dropping empty values
 #interests = apps['App - physics_focus'].dropna()
 whichint= 'App - physics_focus'  ### 'App - physics_focus' or 'Interest narrowed from PS'
@@ -247,10 +219,6 @@ for etu in ['Experiment','Theory','Undecided']:
         intetu=thexpint[thexpint[whichint].str.contains(t)]['App - physics_major'].str.contains(etu)
         rownum.append(np.count_nonzero(intetu)) # This just counts how many True's we have in the array intetu
     print('%10s'%etu + ' '.join(['%4i']*len(rownum)) % tuple(rownum)) # print the row with correct formatting
-
-
-# In[87]:
-
 
 # Now loop through each student entry and count the interests
 import operator
@@ -299,9 +267,6 @@ fig.savefig("04GAC-PieChartInterests.png")
 # 
 # #### The box extends from the lower to upper quartile values of the data, with a yellow line at the median. The whisker values of whis=[2.5, 97.5] 
 
-# In[79]:
-
-
 def infoByTopic(dframe, topic, topicSorted):
     frame = dframe.dropna(subset=[topic, 'Interest narrowed from PS'])
     infoByInt = {x:[] for x in topicSorted[:,0]}
@@ -320,7 +285,6 @@ def infoByTopic(dframe, topic, topicSorted):
 
 # In[80]:
 
-
 fig, ax = plt.subplots(1,1, figsize=(8,5))
 ax.boxplot(infoByTopic(apps, 'Normalized GPA', topicSorted), 0, whis=[2.5, 97.5], sym='')
 ax.set_xticklabels(topicSorted[:,0], rotation=45)
@@ -329,10 +293,6 @@ ax.set(title='Institution 1 GPA (4.0 Scale)',
        ylabel='GPA')
 fig.tight_layout()
 fig.savefig("05GAC-GPAUndergrad.png")
-
-
-# In[81]:
-
 
 fig, ax = plt.subplots(1,1, figsize=(8,5))
 ax.boxplot(infoByTopic(apps, 'GRE Subject Total Score %', topicSorted), 0, whis=[2.5, 97.5], sym='')
@@ -343,10 +303,6 @@ ax.set(title='GRE Subject (Physics) Total Score %',
 fig.tight_layout()
 fig.savefig("06GAC-GREPhysicsPercentile.png")
 
-
-# In[82]:
-
-
 fig, ax = plt.subplots(1,1, figsize=(8,5))
 ax.boxplot(infoByTopic(apps, 'GRE Quantitative Percentile', topicSorted), 0, whis=[2.5, 97.5], sym='')
 ax.set_xticklabels(topicSorted[:,0], rotation=45)
@@ -356,10 +312,6 @@ ax.set(title='GRE Quantitative Percentile',
 fig.tight_layout()
 fig.savefig("07GAC-GREQuantitativePercentile.png")
 
-
-# In[83]:
-
-
 fig, ax = plt.subplots(1,1, figsize=(8,5))
 ax.boxplot(infoByTopic(apps, 'GRE Analytical Writing Percentile', topicSorted), whis=[2.5, 97.5], sym='')
 ax.set_xticklabels(topicSorted[:,0], rotation=45)
@@ -368,9 +320,6 @@ ax.set(title='GRE Analytical Writing Percentile',
        ylim=(0,100))
 fig.tight_layout()
 fig.savefig("08GAC-GREAnalyticalWritingPercentile.png")
-
-
-# In[84]:
 
 
 fig, ax = plt.subplots(1,1, figsize=(8,5))
@@ -384,9 +333,7 @@ fig.savefig("09GAC-GREAnalyticalWritingPercentile.png")
 
 
 # # Faculty Named in Applications
-
-# In[85]:
-
+## This doesn't really work very nicely, see other macro
 
 from collections import Counter
 
@@ -438,9 +385,6 @@ plt.xticks(rotation=80)
 fig.tight_layout();
 
 
-# In[ ]:
-
-
 from collections import Counter
 
 # Grab a full table of faculty named from personal statements, dropping empty values
@@ -490,9 +434,6 @@ fig.tight_layout();
 # This is eye candy which is kind of fun to show at faculty meetings. In 2017 I wanted to show the key areas of interest (mainly LLE + various QO faculty).
 # 
 # Note that in one spot below I manually loaded a font file from my local installation of X. This will vary on other systems so change the path or comment out the font_path keyword argument as needed and it should work on your system.
-
-# In[ ]:
-
 
 faculty = []
 for f in fframe['Faculty Named in PS']:
