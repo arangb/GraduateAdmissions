@@ -1,8 +1,10 @@
-
-
 import os
+# This script will convert the pdf of the PersonalStatement of each student into a text file, and look for the names of UR professors (we obtain these first from the webpage). 
+# It will grep each file, print out each match with context, and add the counter which is saved as a two column file in StudentFacnames.csv
+# Since many names are ambiguous, this process needs to be corrected manually on a second run. For example, John Nichol matches "Nichol"as Bigelow, and Adam Frank, matches Frank Wolfs, etc.... 
 
-# This needs to be run in the same folder as gac_dir
+# This needs to be run in the same folder as gac_dir where all the pdfs are. 
+gac_dir='/scratch/aran/GAC18/Intl47-28-49' # Remember to include the / at the end
 
 #Download faculty page:
 #wget http://www.pas.rochester.edu/people/faculty/index.html
@@ -19,9 +21,6 @@ for fac in fac_names:
 	fac_count[fac]=0
 
 student_foundfac={}
-gac_dir='/scratch/aran/GAC18/Intl47-28-49' # Remember to include the / at the end
-# This directory contains one pdf for each applicant. This can be obtained from SLATE, by running a query to produce a pdf per student only containing the personal statement.
-# Each file will be named: Smith, John (123456789).pdf
 os.system('rm -f ' + gac_dir + '/*.txt')
 for filename in os.listdir(gac_dir):
     if filename.endswith(".pdf"):
