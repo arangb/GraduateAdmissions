@@ -20,6 +20,8 @@ for fac in fac_names:
 
 student_foundfac={}
 gac_dir='/scratch/aran/GAC18/Intl47-28-49' # Remember to include the / at the end
+# This directory contains one pdf for each applicant. This can be obtained from SLATE, by running a query to produce a pdf per student only containing the personal statement.
+# Each file will be named: Smith, John (123456789).pdf
 os.system('rm -f ' + gac_dir + '/*.txt')
 for filename in os.listdir(gac_dir):
     if filename.endswith(".pdf"):
