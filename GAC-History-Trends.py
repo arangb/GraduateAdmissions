@@ -1,10 +1,6 @@
 
 # coding: utf-8
-
-# In[6]:
-
-
-get_ipython().run_line_magic('matplotlib', 'inline')
+#get_ipython().run_line_magic('matplotlib', 'inline')
 
 import pandas
 import numpy as np
