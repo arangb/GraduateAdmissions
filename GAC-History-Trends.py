@@ -6,8 +6,12 @@ import pandas
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from scipy import optimize
+import uncertainties as unc
+import uncertainties.unumpy as unp
 
 mpl.rc('font', family='sans-serif', size=14)
+plt.rcParams.update({'mathtext.default':  'regular' })
 
 Data = pandas.read_excel('GACHistory.xlsx')
 plt.plot(Data.Year, Data.Domestic+Data.International,linewidth=2.0, linestyle='--', color='orange')
@@ -15,7 +19,7 @@ plt.plot(Data.Year, Data.International,linewidth=2.0, linestyle='-', color='blue
 plt.plot(Data.Year, Data.Domestic, linewidth=2.0, linestyle='-', color='red', marker='o', markersize=5.2)
 plt.plot(Data.Year, Data.DomWom+Data.IntlWom, linewidth=2.0, linestyle='-', color='green', marker='>', markersize=5.2)
 plt.plot(Data.Year, Data.DomURM+Data.IntlURM,linewidth=2.0, linestyle='-', color='black', marker='*', markersize=5.2)
-plt.legend( ('Total','Intl','Domestic','Women','URM') , loc='upper right', frameon=False)
+plt.legend( ('Total','Intl','Domestic','Women','URM') , loc='upper right', frameon=False,numpoints=1)
 plt.title("Number of applications")
 plt.ylabel("Number of applicants")
 plt.xlabel("Year")
@@ -34,7 +38,7 @@ plt.plot(Data.Year, domperc, linewidth=2.0, linestyle='-', color='red', marker='
 plt.plot(Data.Year, intlperc,linewidth=2.0, linestyle='-', color='blue', marker='^', markersize=5.2)
 plt.plot(Data.Year, womenperc, linewidth=2.0, linestyle='-', color='green', marker='>', markersize=5.2)
 plt.plot(Data.Year, urmperc,linewidth=2.0, linestyle='-', color='black', marker='*', markersize=5.2)
-plt.legend( ('Domestic','Intl','Women','URM') , loc='upper right', frameon=False)
+plt.legend( ('Domestic','Intl','Women','URM') , loc='upper right', frameon=False,numpoints=1)
 plt.title("Composition of offers made")
 plt.ylabel("% of offers")
 plt.xlabel("Year")
@@ -53,11 +57,12 @@ plt.plot(Data.Year, domperc, linewidth=2.0, linestyle='-', color='red', marker='
 plt.plot(Data.Year, intlperc,linewidth=2.0, linestyle='-', color='blue', marker='^', markersize=5.2)
 plt.plot(Data.Year, womenperc, linewidth=2.0, linestyle='-', color='green', marker='>', markersize=5.2)
 plt.plot(Data.Year, urmperc,linewidth=2.0, linestyle='-', color='black', marker='*', markersize=5.2)
-plt.legend( ('Domestic','Intl','Women','URM') , loc='upper right', frameon=False)
+plt.legend( ('Domestic','Intl','Women','URM') , loc='upper right', frameon=False,numpoints=1)
 plt.title("Composition of each cohort")
 plt.ylabel("% of those accepted")
 plt.xlabel("Year")
 plt.grid()
+plt.xlim(2004.5,2018.5)
 plt.savefig('Trends03-AcceptComositionPerYear.png')
 
 # Plot acceptance rates
@@ -72,11 +77,12 @@ plt.plot(Data.Year, domperc, linewidth=2.0, linestyle='-', color='red', marker='
 plt.plot(Data.Year, intlperc,linewidth=2.0, linestyle='-', color='blue', marker='^', markersize=5.2)
 plt.plot(Data.Year, womenperc, linewidth=2.0, linestyle='-', color='green', marker='>', markersize=5.2)
 plt.plot(Data.Year, urmperc,linewidth=2.0, linestyle='-', color='black', marker='*', markersize=5.2)
-plt.legend( ('Total','Domestic','Intl','Women','URM') , loc='upper right', frameon=False)
+plt.legend( ('Total','Domestic','Intl','Women','URM') , loc='upper right', frameon=False,numpoints=1)
 plt.title("Yield: accepted/offered")
 plt.ylabel("% accept of offers in that group")
 plt.xlabel("Year")
 plt.grid()
+plt.xlim(2004.5,2018.5)
 plt.savefig('Trends04-YieldsPerYear.png')
 
 # Number of offers and accepts
@@ -84,10 +90,48 @@ plt.figure()
 plt.plot(Data.Year, totaloff, linewidth=2.0, linestyle='-', color='black', marker='o', markersize=5.2)
 plt.plot(Data.Year, totalacc,linewidth=2.0, linestyle='-', color='red', marker='*', markersize=5.2)
 plt.plot(Data.Year, accperc,linewidth=2.0, linestyle='--', color='orange')
-plt.legend( ('Number offered','Number accepted','% accepted/offered'), loc='upper right', frameon=False)
+plt.legend( ('Number offered','Number accepted','% accepted/offered'), loc='upper right', frameon=False,numpoints=1)
 plt.title("Total numbers of accepted, offered")
 plt.ylabel("Number of students / %")
 plt.xlabel("Year")
 plt.grid()
+plt.xlim(2004.5,2018.5)
 plt.savefig('Trends05-NumAccOffYieldPerYear.png')
 
+# Plot Offers vs Acceptances in each year, fit to power law
+# The data is clearly non-linear: the first 40 offers yield around 5 accepts, and the last 40 offers yield around 20.
+# We will need a power law function:
+def func_powerlaw(x, a, b):
+    return a * x**b
+
+# Sort acc, off and years in order of acc
+#x, y, d = zip(*sorted(zip(totalacc[2:],totaloff[2:],Data.Year[2:]),axis=0))
+x,y,d = np.sort(np.array([totalacc,totaloff,Data.Year]),axis=0)
+plt.figure()
+plt.scatter(x, y, c='k', s=8)
+for i in np.arange(len(d)): # print year for each marker
+    plt.text(x[i], y[i], str(d[i]),fontsize=8)
+fitres = optimize.curve_fit(func_powerlaw, x, y, sigma=np.sqrt(y), p0=[10.,0.5], full_output=True) #sigma=np.sqrt(y)
+popt=fitres[0]; pcov=fitres[1]
+redchisq = (fitres[2]['fvec']**2).sum()/(len(fitres[2]['fvec'])-len(popt))
+print("a = %6.3f +- %6.3f" % (popt[0],(pcov[0,0]/redchisq)**0.5))
+print("b = %6.3f +- %6.3f" % (popt[1],(pcov[1,1]/redchisq)**0.5))
+print("chi2/Ndof = %6.3f" % redchisq)
+# Need to use correlated errors to draw sigma bands
+a, b = unc.correlated_values(popt, pcov)
+finex= np.arange(60)
+plt.plot(finex, func_powerlaw(finex, *popt), 'b-',linewidth=2) # fit line
+py = func_powerlaw(finex,a,b)
+nom = unp.nominal_values(py)
+std = unp.std_devs(py)
+plt.fill_between(finex, nom-1*std, nom+1*std, facecolor='b',alpha=0.3,label='1$\sigma$ band of fit') # bands
+plt.fill_between(finex, nom-2*std, nom+2*std, facecolor='b',alpha=0.2,label='2$\sigma$ band of fit') # bands
+avgyield=np.mean(x/y) # this is the average yield
+plt.plot(finex,finex*(1./avgyield),'k--',alpha=0.2,linewidth=2,label='mean acc/off={0:.2f}'.format(avgyield))
+plt.legend(loc='lower right')
+plt.title(r'Power law best fit o=${0:5.3f} \cdot a^{{{1:4.3f}}}$'.format(*popt),color='b')
+plt.ylabel("Offers")
+plt.xlabel("Acceptances")
+plt.grid()
+plt.axis([0, 30, 0, 90])
+plt.savefig('OffersVSAcceptance-PowerLaw.png')

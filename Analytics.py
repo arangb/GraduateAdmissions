@@ -10,7 +10,8 @@ from wordcloud import WordCloud, STOPWORDS
 mpl.rc('font', family='sans-serif', size=14)
 
 #apps = pandas.read_excel('180108_data.xlsx')
-apps = pandas.read_excel('admitted18_stats.xlsx')
+#apps = pandas.read_excel('admitted18_stats.xlsx')
+apps = pandas.read_excel('admitted80.xlsx')
 # 
 ## Uncomment to view the entire input table.
 # apps
@@ -67,7 +68,7 @@ xymax = np.max([np.max(np.fabs(gres)), np.max(np.fabs(normgpas))])
 lim = (int(xymax/binwidth) + 1) * binwidth
 
 axScatter.set_xlim((0, 100))
-axScatter.set_ylim((2.75, 4))
+axScatter.set_ylim((3.2, 4))
 #print(lim)
 
 axHistx.hist(gres.dropna(), bins=np.arange(0, lim + 10, 10))
@@ -117,7 +118,8 @@ fig.savefig("01GAC-GREBreakdown.png")
 # ### Breakdown by Gender
 
 # Print nice table with summary of gender and race
-print(pandas.crosstab(apps.Sex,apps.Race.fillna('N/R'),margins=True))
+# Sometimes Laura uses "Sex" and sometimes "Gender" in her spreadsheets
+print(pandas.crosstab(apps.Sex,apps.Race.fillna('N/R'),margins=True)) # <-- Check name of column: Sex or Gender
 
 gres = ['GRE Analytical Writing Percentile',
         'GRE Quantitative Percentile',
@@ -127,7 +129,7 @@ fig, axes = plt.subplots(2, 2, figsize=(10,7), sharex=True, sharey=True)
 
 for ax, gre in zip(axes.flatten(), gres):
     scores = apps.dropna(subset=[gre])
-    men = scores['Sex'] == 'M'
+    men = scores['Sex'] == 'M'   # <-- Check name of column: Sex or Gender
     women = np.logical_not(men)
     ax.hist(scores[gre][men],
             bins=np.linspace(0, 100, 11),
@@ -190,7 +192,7 @@ fig.savefig("03GAC-URMBreakdown.png")
 
 # Grab a full table of interests from what they clicked or based on personal statements, dropping empty values
 #interests = apps['App - physics_focus'].dropna()
-whichint= 'App - physics_focus'  ### 'App - physics_focus' or 'Interest narrowed from PS'
+whichint= 'Interest narrowed from PS' #'App - physics_focus'  ### 'App - physics_focus' or 'Interest narrowed from PS'
 interests = apps[whichint].dropna()
 
 # Store unique list of student topics (to be used in pie chart)
@@ -200,7 +202,7 @@ for i in interests.values:
     # entries with multiple topics will be properly split
     i = i.replace(".", ",")
     if not 'A/AP' in i:
-        i = i.replace("/", ",") 
+        i = i.replace("/", ",")
 
     # Do the splitting and stuff unique topics into the topics list
     subj = i.split(",")
@@ -289,7 +291,7 @@ fig, ax = plt.subplots(1,1, figsize=(8,5))
 ax.boxplot(infoByTopic(apps, 'Normalized GPA', topicSorted), 0, whis=[2.5, 97.5], sym='')
 ax.set_xticklabels(topicSorted[:,0], rotation=45)
 ax.set(title='Institution 1 GPA (4.0 Scale)',
-       ylim=(2.4,4.2),
+       ylim=(3.0,4.2),
        ylabel='GPA')
 fig.tight_layout()
 fig.savefig("05GAC-GPAUndergrad.png")
