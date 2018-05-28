@@ -111,14 +111,13 @@ plt.figure()
 plt.scatter(x, y, c='k', s=8)
 for i in np.arange(len(d)): # print year for each marker
     plt.text(x[i], y[i], str(d[i]),fontsize=8)
-fitres = optimize.curve_fit(func_powerlaw, x, y, sigma=np.sqrt(y), p0=[10.,0.5], full_output=True) #sigma=np.sqrt(y)
+fitres = optimize.curve_fit(func_powerlaw, x, y, sigma=np.sqrt(y), p0=[10.,0.5], full_output=True, absolute_sigma=True)
 popt=fitres[0]; pcov=fitres[1]
-redchisq = (fitres[2]['fvec']**2).sum()/(len(fitres[2]['fvec'])-len(popt))
-print("a = %6.3f +- %6.3f" % (popt[0],(pcov[0,0]/redchisq)**0.5))
-print("b = %6.3f +- %6.3f" % (popt[1],(pcov[1,1]/redchisq)**0.5))
-print("chi2/Ndof = %6.3f" % redchisq)
 # Need to use correlated errors to draw sigma bands
 a, b = unc.correlated_values(popt, pcov)
+print('Fit results: \na = {0:.3f} \nb = {1:.3f}'.format(a,b))
+redchisq = (fitres[2]['fvec']**2).sum()/(len(fitres[2]['fvec'])-len(popt))
+print("chi2/Ndof = %6.3f" % redchisq)
 finex= np.arange(0,30,0.2)
 plt.plot(finex, func_powerlaw(finex, *popt), 'b-',linewidth=2) # fit line
 py = func_powerlaw(finex,a,b)
