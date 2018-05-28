@@ -119,14 +119,14 @@ print("b = %6.3f +- %6.3f" % (popt[1],(pcov[1,1]/redchisq)**0.5))
 print("chi2/Ndof = %6.3f" % redchisq)
 # Need to use correlated errors to draw sigma bands
 a, b = unc.correlated_values(popt, pcov)
-finex= np.arange(60)
+finex= np.arange(0,30,0.2)
 plt.plot(finex, func_powerlaw(finex, *popt), 'b-',linewidth=2) # fit line
 py = func_powerlaw(finex,a,b)
 nom = unp.nominal_values(py)
 std = unp.std_devs(py)
 plt.fill_between(finex, nom-1*std, nom+1*std, facecolor='b',alpha=0.3,label='1$\sigma$ band of fit') # bands
 plt.fill_between(finex, nom-2*std, nom+2*std, facecolor='b',alpha=0.2,label='2$\sigma$ band of fit') # bands
-avgyield=np.mean(x/y) # this is the average yield
+avgyield=np.mean(np.divide(x,y,dtype=float)) # this is the average yield
 plt.plot(finex,finex*(1./avgyield),'k--',alpha=0.2,linewidth=2,label='mean acc/off={0:.2f}'.format(avgyield))
 plt.legend(loc='lower right')
 plt.title(r'Power law best fit o=${0:5.3f} \cdot a^{{{1:4.3f}}}$'.format(*popt),color='b')
