@@ -7,24 +7,27 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud, STOPWORDS
 
-mpl.rc('font', family='sans-serif', size=14)
+mpl.rc('font', family='sans-serif', size=16)
 
 #apps = pandas.read_excel('180108_data.xlsx')
 #apps = pandas.read_excel('admitted18_stats.xlsx')
-apps = pandas.read_excel('admitted80.xlsx')
+apps = pandas.read_excel('190125_data_allapps.xlsx')
 # 
 ## Uncomment to view the entire input table.
 # apps
-
+# Make cuts:
+#apps=apps[apps['GRE Subject Total Score %']>0].reset_index(drop = True)
+#apps=apps[apps['Citizenship']=='US'].reset_index(drop = True)
 
 # # GPA and GRE Breakdowns
 # 
 # ### Total Scores
 
 # Plot correlation between GRE and GPA:
-gres=apps['GRE Subject Total Score %'].fillna(0.)
-gpas=apps['Institution 1 GPA Score'].fillna(0.)
+gres=apps['GRE Subject Total Score %'].fillna(-10.)
+gpas=apps['Institution 1 GPA Score'].fillna(-10.)
 normgpas=[]
+print('Normalizing GPAs:')
 for g in gpas:
     if g>4.0 and g<=5.0:
         print(g,g*4./5.)
@@ -51,7 +54,7 @@ rect_histx = [left, bottom_h, width, 0.2]
 rect_histy = [left_h, bottom, 0.2, height]
 
 # start with a rectangular Figure
-plt.figure(1, figsize=(5,5))
+plt.figure(1, figsize=(10,10))
 
 axScatter = plt.axes(rect_scatter)
 axHistx = plt.axes(rect_histx)
@@ -66,32 +69,33 @@ axScatter.set_ylabel("Undergrad GPA")
 binwidth = 0.2
 xymax = np.max([np.max(np.fabs(gres)), np.max(np.fabs(normgpas))])
 lim = (int(xymax/binwidth) + 1) * binwidth
-
 axScatter.set_xlim((0, 100))
-axScatter.set_ylim((3.2, 4))
+axScatter.set_ylim((2.7, 4))
 #print(lim)
 
 axHistx.hist(gres.dropna(), bins=np.arange(0, lim + 10, 10))
 axHistx.axes.xaxis.set_ticklabels([]) # remove x axis labels on top plot
 axHisty.hist(gpas.dropna(), bins=np.arange(0, lim + 0.2, 0.2), orientation='horizontal')
 axHisty.axes.yaxis.set_ticklabels([]) # remove y axis labels on right plot
-
 axHistx.set_xlim(axScatter.get_xlim())
 axHisty.set_ylim(axScatter.get_ylim())
 
 plt.savefig('00GAC-GPAGREcorr-projections.png')
 
+print('\nGRE Mean = %5.3f, Median = %5.3f percentile'%(np.mean(gres[gres>0]),np.median(gres[gres>0])))
+print('GPA Mean = %5.3f, Median = %5.3f \n'%(np.mean(normgpas[normgpas>0]),np.median(normgpas[normgpas>0])))
 
 plt.figure() # New figure
 fig, ax = plt.subplots(figsize=(10, 10))
 # Plot correlation between GRE and GPA:
-gres=apps['GRE Subject Total Score %'] # .fillna(-1) just in case there are empty values
-gpas=apps['Normalized GPA']   # idem
+gres=apps['GRE Subject Total Score %'].fillna(-10) # just in case there are empty values
+gpas=apps['Normalized GPA'].fillna(-10)   # idem
 universities=apps['Institution 1 Name']
 #print(gres[1],gpas[1])
 plt.scatter(gres,gpas,color='blue',s=5,edgecolor='none')
 for i, txt in enumerate(universities):
-    ax.annotate(txt, (gres[i+1],gpas[i+1]), size='x-small')
+	#print(i,gres[i],gpas[i],txt)
+	ax.annotate(txt, (gres[i],gpas[i]), size='x-small')
 
 plt.xlabel("GRE Subject Total Score %")
 plt.ylabel("Undergrad GPA")
@@ -150,7 +154,6 @@ for ax, gre in zip(axes.flatten(), gres):
 fig.tight_layout()
 fig.savefig("02GAC-GenderBreakdown.png")
 
-
 # ### URM Breakdown
 
 # Print nice table with summary of gender and URM
@@ -166,17 +169,16 @@ for ax, gre in zip(axes.flatten(), gres):
     scores = apps.dropna(subset=[gre])
     urm = scores['URM'] == 'Yes'
     rep = np.logical_not(urm)
-    ax.hist(scores[gre][urm],
-            bins=np.linspace(0, 100, 11),
-            histtype='stepfilled',
-            label='URM',
-            alpha=0.5)
     ax.hist(scores[gre][rep],
             bins=np.linspace(0, 100, 11),
             histtype='stepfilled',
             label='Not URM',
             alpha=0.5)
-    
+    ax.hist(scores[gre][urm],
+            bins=np.linspace(0, 100, 11),
+            histtype='stepfilled',
+            label='URM',
+            alpha=0.5)
     ax.set(title=gre)
     ax.grid()
     
@@ -185,6 +187,13 @@ for ax, gre in zip(axes.flatten(), gres):
 fig.tight_layout()
 fig.savefig("03GAC-URMBreakdown.png")
 
+### Summary percentage:
+Nwomen=len(apps[apps.Sex=='F']['URM'])
+NURM=len(apps[apps.URM=='Yes']['URM'])
+Ntot=len(apps['URM'])
+print('Women: %3i/%3i=%4.2f%%'%(Nwomen,Ntot,float(Nwomen)/float(Ntot)*100.))
+print('  URM: %3i/%3i=%4.2f%%'%(NURM,Ntot,float(NURM)/float(Ntot)*100.))
+print(pandas.crosstab(apps.Citizenship1,apps.Sex,margins=True))
 
 # # Categorization by Interests
 # 
@@ -192,7 +201,7 @@ fig.savefig("03GAC-URMBreakdown.png")
 
 # Grab a full table of interests from what they clicked or based on personal statements, dropping empty values
 #interests = apps['App - physics_focus'].dropna()
-whichint= 'Interest narrowed from PS' #'App - physics_focus'  ### 'App - physics_focus' or 'Interest narrowed from PS'
+whichint= 'App - physics_focus'  ### 'App - physics_focus' or 'Interest narrowed from PS'
 interests = apps[whichint].dropna()
 
 # Store unique list of student topics (to be used in pie chart)
@@ -269,10 +278,10 @@ fig.savefig("04GAC-PieChartInterests.png")
 # 
 # #### The box extends from the lower to upper quartile values of the data, with a yellow line at the median. The whisker values of whis=[2.5, 97.5] 
 
-def infoByTopic(dframe, topic, topicSorted):
-    frame = dframe.dropna(subset=[topic, 'Interest narrowed from PS'])
+def infoByTopic(dframe, topic, topicSorted, whichint='App - physics_focus'):
+    frame = dframe.dropna(subset=[topic, whichint])
     infoByInt = {x:[] for x in topicSorted[:,0]}
-    for info, top in zip(frame[topic], frame['Interest narrowed from PS']):
+    for info, top in zip(frame[topic], frame[whichint]):
         for t in topicSorted[:,0]:
             if t in top:
                 infoByInt[t].append(info)
@@ -286,18 +295,18 @@ def infoByTopic(dframe, topic, topicSorted):
 
 
 # In[80]:
-
+print('Box = 97.5%, Tip = 2.5%')
 fig, ax = plt.subplots(1,1, figsize=(8,5))
-ax.boxplot(infoByTopic(apps, 'Normalized GPA', topicSorted), 0, whis=[2.5, 97.5], sym='')
+ax.boxplot(infoByTopic(apps, 'Normalized GPA', topicSorted, whichint), 0, whis=[2.5, 97.5], sym='')
 ax.set_xticklabels(topicSorted[:,0], rotation=45)
 ax.set(title='Institution 1 GPA (4.0 Scale)',
-       ylim=(3.0,4.2),
+       ylim=(2.7,4.0),
        ylabel='GPA')
 fig.tight_layout()
 fig.savefig("05GAC-GPAUndergrad.png")
 
 fig, ax = plt.subplots(1,1, figsize=(8,5))
-ax.boxplot(infoByTopic(apps, 'GRE Subject Total Score %', topicSorted), 0, whis=[2.5, 97.5], sym='')
+ax.boxplot(infoByTopic(apps, 'GRE Subject Total Score %', topicSorted, whichint), 0, whis=[2.5, 97.5], sym='')
 ax.set_xticklabels(topicSorted[:,0], rotation=45)
 ax.set(title='GRE Subject (Physics) Total Score %',
        ylabel='percentile',
@@ -306,7 +315,7 @@ fig.tight_layout()
 fig.savefig("06GAC-GREPhysicsPercentile.png")
 
 fig, ax = plt.subplots(1,1, figsize=(8,5))
-ax.boxplot(infoByTopic(apps, 'GRE Quantitative Percentile', topicSorted), 0, whis=[2.5, 97.5], sym='')
+ax.boxplot(infoByTopic(apps, 'GRE Quantitative Percentile', topicSorted, whichint), 0, whis=[2.5, 97.5], sym='')
 ax.set_xticklabels(topicSorted[:,0], rotation=45)
 ax.set(title='GRE Quantitative Percentile',
        ylabel='percentile',
@@ -315,7 +324,7 @@ fig.tight_layout()
 fig.savefig("07GAC-GREQuantitativePercentile.png")
 
 fig, ax = plt.subplots(1,1, figsize=(8,5))
-ax.boxplot(infoByTopic(apps, 'GRE Analytical Writing Percentile', topicSorted), whis=[2.5, 97.5], sym='')
+ax.boxplot(infoByTopic(apps, 'GRE Analytical Writing Percentile', topicSorted, whichint), whis=[2.5, 97.5], sym='')
 ax.set_xticklabels(topicSorted[:,0], rotation=45)
 ax.set(title='GRE Analytical Writing Percentile',
        ylabel='percentile',
@@ -325,7 +334,7 @@ fig.savefig("08GAC-GREAnalyticalWritingPercentile.png")
 
 
 fig, ax = plt.subplots(1,1, figsize=(8,5))
-ax.boxplot(infoByTopic(apps, 'GRE Verbal Percentile', topicSorted), 0, whis=[50, 50], sym='')
+ax.boxplot(infoByTopic(apps, 'GRE Verbal Percentile', topicSorted, whichint), 0, whis=[50, 50], sym='')
 ax.set_xticklabels(topicSorted[:,0], rotation=45)
 ax.set(title='GRE Verbal Percentile',
        ylabel='percentile',
@@ -333,132 +342,27 @@ ax.set(title='GRE Verbal Percentile',
 fig.tight_layout()
 fig.savefig("09GAC-GREAnalyticalWritingPercentile.png")
 
-
-# # Faculty Named in Applications
-## This doesn't really work very nicely, see other macro
-
-from collections import Counter
-
-# Grab a full table of faculty named from personal statements, dropping empty values
-fframe = apps.dropna(subset=['Faculty Named in PS'])
-faculty = fframe['Faculty Named in PS']
-
-faculty = []
-for f in fframe['Faculty Named in PS']:
-    names = f.split(",")
-    for n in names:
-        n = n.strip()
-        if len(n) > 2 and n[0].isupper():
-            name = 'Garcia-Bellido' if n == 'Garcia-Bellido' else n 
-            faculty.append(name)
-        
-nameCount = Counter(faculty)
-nameCount = np.asarray(sorted(nameCount.items(),
-                       key=operator.itemgetter(1),
-                       reverse=True))
-
-names = []
-count = []
-for n, c in nameCount:
-    names.append(n)
-    count.append(c)
-
-print(names)
-print(count)
-print(len(names))
-#caca=np.arange(-1,int(count[0])) + 1
-#print(caca)
-fig, ax = plt.subplots(1,1, figsize=(17,6))
-idx = 5 + 10*np.arange(len(names))
-plt.bar(idx, count, width=5, align='center', fc='royalblue')
-plt.xticks(idx, names)
-plt.ylabel('count')
-plt.title('Interest by Personal Statement')
-plt.xlim(1,idx[-1]+4)
-#ax.set(xlim=(idx[0], idx[-1]+5),
-#       xticks=idx+2.5,
-#       xticklabels=names,
-       #ylim=(-1,int(count[0])+0.5),
-#       yticks=np.arange(0,int(count[0])) + 1,
-#       ylabel='count',
-#       title='Interest by Personal Statement')
-#ax.grid()
-plt.xticks(rotation=80)
-fig.tight_layout();
-
-
-from collections import Counter
-
-# Grab a full table of faculty named from personal statements, dropping empty values
-fframe = apps.dropna(subset=['Faculty Named in PS'])
-faculty = fframe['Faculty Named in PS']
-
-faculty = []
-for f in fframe['Faculty Named in PS']:
-    names = f.split(",")
-    for n in names:
-        n = n.strip()
-        if len(n) > 2 and n[0].isupper():
-            name = 'Garcia-Bellido' if n == 'Garcia-Bellido' else n 
-            faculty.append(name)
-        
-nameCount = Counter(faculty)
-nameCount = np.asarray(sorted(nameCount.items(),
-                       key=operator.itemgetter(1),
-                       reverse=True))
-
-names = []
-count = []
-for n, c in nameCount:
-    names.append(n)
-    count.append(c)
-
-print(names,count)
-caca=np.arange(-1,int(count[0])) + 1
-print(caca)
-fig, ax = plt.subplots(1,1, figsize=(17,6))
-idx = 5 + 10*np.arange(len(names))
-ax.bar(idx, count, width=5, fc='royalblue')
-ax.set(xlim=(idx[0], idx[-1]+5),
-       xticks=idx+2.5,
-       xticklabels=names,
-       #ylim=(-1,int(count[0])+0.5),
-       yticks=np.arange(0,int(count[0])) + 1,
-       ylabel='count',
-       title='Interest by Personal Statement')
-ax.grid()
-plt.xticks(rotation=80)
-fig.tight_layout();
-
-
-# ## Faculty Interest Word Cloud
-# 
-# This is eye candy which is kind of fun to show at faculty meetings. In 2017 I wanted to show the key areas of interest (mainly LLE + various QO faculty).
-# 
-# Note that in one spot below I manually loaded a font file from my local installation of X. This will vary on other systems so change the path or comment out the font_path keyword argument as needed and it should work on your system.
-
-faculty = []
-for f in fframe['Faculty Named in PS']:
-    names = f.split(",")
-    for n in names:
-        n = n.strip()
-        if len(n) > 2 and not n[0].islower():
-            name = 'Garcia_Bellido' if n == 'Garcia-Bellido' else n 
-            faculty.append(name)
-            
-wordcloud = WordCloud(font_path='/opt/X11/share/fonts/TTF/VeraMono.ttf',
-                      stopwords=STOPWORDS,
-                      background_color='black',
-                      width=1200,
-                      height=1000,
-                      prefer_horizontal=0.8,
-                      relative_scaling=1.,
-                      max_font_size=300,
-                      ).generate(" ".join(faculty))
-
-fig, ax = plt.subplots(1,1, figsize=(12,10))
-ax.imshow(wordcloud)
-plt.axis('off')
-fig.tight_layout()
-fig.savefig("faculty.png", dpi=300)
-
+### Recommendation Letters
+import scipy.stats as stats
+plt.figure() # New figure
+fig, ax = plt.subplots(figsize=(10, 10))
+# Translate the scores given by the recommenders:
+recs={'Among the very best': 1, 'Top 5%': 5., 'Top 10%': 10., 'Top Quarter': 25., 'Average': 50.}
+apps=apps.replace(recs.keys(),recs.values()) # replace text with numbers
+# Take the average of the 4 recommenders:
+apps['AvgRecLet'] = apps[['Recommender 1 Rating', 'Recommender 2 Rating', 'Recommender 3 Rating', 'Recommender 4 Rating']].mean(axis=1)
+#print(apps['AvgRecLet'])
+x=apps['AvgRecLet'].dropna()
+n, bins, patches = plt.hist(x, 20, range=[0,50], linewidth=3, facecolor='g', alpha=0.75, histtype='stepfilled')
+# alpha is the transparency of the data points (patch)
+#plt.axis([0, 400, 0, 0.01]) # sets the ranges for the x and y axis. This command overrides the range inside hist
+plt.title("RecLetters: AB=1, 5%=5, 10%=10, TopQt=25, Avg=50")
+plt.xlabel("Average of recommendation letters scores per student")
+plt.ylabel("Students")
+plt.grid()
+RLmean = np.mean(x)
+RLmedi = np.median(x)
+RLmode = stats.mode(x)[0][0]
+plt.text(35,0.85*max(n),'%-7s %4i\n%-7s %4.2f \n%-7s %4.2f\n%-7s %4.2f'%('Entries',len(x),'Mean',RLmean,'Median',RLmedi,'Mode',RLmode),fontsize=20)
+#plt.xscale('log')
+plt.savefig("10GAC-RecLettAvgScore.png") 
