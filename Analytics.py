@@ -9,16 +9,16 @@ from wordcloud import WordCloud, STOPWORDS
 
 mpl.rc('font', family='sans-serif', size=16)
 
-#apps = pandas.read_excel('180108_data.xlsx')
-#apps = pandas.read_excel('admitted18_stats.xlsx')
+#apps = pandas.read_excel('../../GAC18/admitted80.xlsx')
+#apps = pandas.read_excel('../../GAC18/180213_data_100.xlsx')
 apps = pandas.read_excel('190125_data_allapps.xlsx')
 # 
 ## Uncomment to view the entire input table.
 # apps
 # Make cuts:
 #apps=apps[apps['GRE Subject Total Score %']>0].reset_index(drop = True)
-#apps=apps[apps['Citizenship']=='US'].reset_index(drop = True)
-
+#apps=apps[(apps['Citizenship']=='US') | (apps['Citizenship']=='PR')].reset_index(drop = True)
+#apps=apps[(apps['Citizenship']=='FN')].reset_index(drop = True)
 # # GPA and GRE Breakdowns
 # 
 # ### Total Scores
@@ -194,6 +194,7 @@ Ntot=len(apps['URM'])
 print('Women: %3i/%3i=%4.2f%%'%(Nwomen,Ntot,float(Nwomen)/float(Ntot)*100.))
 print('  URM: %3i/%3i=%4.2f%%'%(NURM,Ntot,float(NURM)/float(Ntot)*100.))
 print(pandas.crosstab(apps.Citizenship1,apps.Sex,margins=True))
+print('\nAverage TOEFL score: %4.1f'%np.mean(apps['TOEFL Total']))
 
 # # Categorization by Interests
 # 
@@ -230,6 +231,11 @@ for etu in ['Experiment','Theory','Undecided']:
         intetu=thexpint[thexpint[whichint].str.contains(t)]['App - physics_major'].str.contains(etu)
         rownum.append(np.count_nonzero(intetu)) # This just counts how many True's we have in the array intetu
     print('%10s'%etu + ' '.join(['%4i']*len(rownum)) % tuple(rownum)) # print the row with correct formatting
+
+Nth=len(apps['App - physics_major'][apps['App - physics_major']=='Theory'])
+Nex=len(apps['App - physics_major'][apps['App - physics_major']=='Experiment'])
+Ntot=len(apps['App - physics_major'].dropna())
+print('Theory: %3i/%3i=%3.1f%% \nExperiment: %3i/%3i=%3.1f%% \nUndecided: %3i/%3i=%3.1f%%' %(Nth,Ntot,100.*float(Nth)/float(Ntot),Nex,Ntot,100.*float(Nex)/float(Ntot),Ntot-Nex-Nth,Ntot,100.*float(Ntot-Nex-Nth)/float(Ntot)))
 
 # Now loop through each student entry and count the interests
 import operator
@@ -295,7 +301,7 @@ def infoByTopic(dframe, topic, topicSorted, whichint='App - physics_focus'):
 
 
 # In[80]:
-print('Box = 97.5%, Tip = 2.5%')
+print('Box = Top 25%, Tips = (2.5%,97.5%)')
 fig, ax = plt.subplots(1,1, figsize=(8,5))
 ax.boxplot(infoByTopic(apps, 'Normalized GPA', topicSorted, whichint), 0, whis=[2.5, 97.5], sym='')
 ax.set_xticklabels(topicSorted[:,0], rotation=45)
