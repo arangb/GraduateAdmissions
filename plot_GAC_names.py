@@ -27,4 +27,22 @@ fig.tight_layout()
 fig.show()
 fig.savefig('faculty_names_histo.png')
 
+# ## Faculty Interest Word Cloud
+# This is eye candy which is kind of fun to show at faculty meetings. In 2017 I wanted to show the key areas of interest (mainly LLE + various QO faculty).
+from wordcloud import WordCloud, STOPWORDS
 
+fac_count_dict = dict(zip(names, count))
+wordcloud = WordCloud(stopwords=STOPWORDS,
+                      background_color='black',
+                      width=1200,
+                      height=1000,
+                      prefer_horizontal=0.8,
+                      relative_scaling=1.,
+                      max_font_size=300,
+                      ).generate_from_frequencies(fac_count_dict)
+
+fig, ax = plt.subplots(1,1, figsize=(12,10))
+ax.imshow(wordcloud)
+plt.axis('off')
+fig.tight_layout()
+fig.savefig("faculty_wordcloud.png", dpi=300)
