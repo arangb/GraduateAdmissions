@@ -4,11 +4,12 @@ import pandas
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import scipy.stats as stats
 
 inputfiles = [pandas.read_excel('18_data_all.xlsx'),pandas.read_excel('190125_data_allapps.xlsx')]
 hlabels=['2018','2019']
-variables_to_plot = ['Institution 1 GPA Score','GRE Subject Total Score %','Recommender']
-variables_histp = [[20,2.5,4.0],[20,0,100],[20,0,50]] # the parameters [Nbins, xmin, xmax] for each histogram/variable
+variables_to_plot = ['Institution 1 GPA Score','GRE Subject Total Score %','GRE Quantitative Percentile','Recommender']
+variables_histp = [[20,2.5,4.0,2],[20,0,100,2],[20,0,100,2],[30,0,30,1]] # the parameters [Nbins, xmin, xmax, legloc] for each histogram/variable
 hcolors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
 hstyles = ['-','-','--','--',':',':'] # ['-','--',':','-.']
 
@@ -48,9 +49,10 @@ def plot_statbox(ax=None,xpos=0.90,ypos=0.90,name="",nentries=0,mean=0.,median=0
 	# The transform=ax.transAxes makes the absolute coordinates with 0,0 = lower left and 1,1 = upper right
 	ax.text(xpos,ypos,'%14s\n%-7s %6i\n%-7s %5.2f \n%-7s %5.2f'%(name.center(12),'Entries',nentries,'Mean',mean,'Median',median),fontsize=12,label=name,bbox={'facecolor':'white', 'pad':3},transform=ax.transAxes,color=c)
 	
-for i,v in enumerate(variables_to_plot):
+for n,v in enumerate(variables_to_plot):
 	# start with a rectangular Figure
 	fig, ax = plt.subplots(1,figsize=(10, 6))
+	goodNbins, xmin, xmax, legloc = variables_histp[n]
 	for j,d in enumerate(inputfiles):
 		title=""
 		if 'Recommender' in v:
@@ -60,32 +62,25 @@ for i,v in enumerate(variables_to_plot):
 			# Take the average of the 4 recommenders:
 			d['AvgRecLet'] = d[['Recommender 1 Rating', 'Recommender 2 Rating', 'Recommender 3 Rating', 'Recommender 4 Rating']].mean(axis=1)
 			h=d['AvgRecLet'].dropna()
-			title="RecLetters: AB=1, 5%=5, 10%=10, TopQt=25, Avg=50"
+			title="Scores: AB=1, 5%=5, 10%=10, TopQt=25, Avg=50"
 		else:
 			h=d[v].dropna()
 		if 'GPA' in v:
 			h=normalize_GPA(h)
-		goodNbins, xmin, xmax = variables_histp[i]
+		#Plot histogram:
 		ax.hist(h, goodNbins, density=True, range=[xmin,xmax], lw=3, color=hcolors[j], histtype='step', label=hlabels[j])
-		width=.15
-		plot_statbox(ax,0.2+j*width,0.8,hlabels[j],len(h),np.mean(h),np.median(h),0.,c=hcolors[j]) # 1.005 for boxes on the right
+		bboxwidth=.15
+		plot_statbox(ax,0.35+j*bboxwidth,0.8,hlabels[j],len(h),np.mean(h),np.median(h),stats.mode(h)[0][0],c=hcolors[j]) # 1.005 for boxes on the right
 	xtitle=h.name
 	if v=='Recommender':
 		xtitle="Average of recommendation letters scores per student"
 	ytitle="Normalized counts"
-
-	#ax.hist(p1, goodNbins, density=True, range=[xmin,xmax], lw=3, color='r', histtype='step', label='2018')
-	#ax.hist(p2, goodNbins, density=True, range=[xmin,xmax], lw=3, color='b', histtype='step', label='2019')
-	# alpha is the transparency of the data points (patch)
-	# normed=1 makes the y axis the fraction of events
-	# plt.axis([0, 400, 0, 0.01]) # sets the ranges for the x and y axis. This command overrides the range inside hist
 	ax.grid()
-	leg=ax.legend(fontsize=14,loc=2)
-	#plot_statbox(ax,0.35,0.8,'2019',len(p2),np.mean(p2),np.median(p2),0.,c='b')
+	leg=ax.legend(fontsize=14,loc=legloc)
 	ax.set_title(title, size = 18)
 	ax.set_xlabel(xtitle, size = 16)
 	ax.set_ylabel(ytitle, size= 16)
-	plotname=xtitle.replace(' ','_').replace('[','').replace(']','').replace('%','Perct')+'.png'
+	plotname="%02d"%(n+1)+'_'+xtitle.replace(' ','_').replace('[','').replace(']','').replace('%','Perct')+'.png'
 	fig.savefig(plotname)
 
 #
@@ -120,15 +115,17 @@ for j,d in enumerate(inputfiles):
 	bar_width = 0.35
 	opacity = 0.8
 	x = np.arange(len(topics))
-	ax.bar(x+j*bar_width, list(topicCount.values()), bar_width, alpha=opacity, color=hcolors[j],label=hlabels[j])
+	ax.bar(x+j*bar_width, list(topicCount.values()), bar_width, alpha=opacity, color=hcolors[j],label=hlabels[j]+' N=%3i'%len(interests))
 
+ax.set_ylim(top=1.2*ax.get_ylim()[1])
 xtitle='Field interests from application form'
 ax.set_xlabel(xtitle,size = 16)
 ax.set_ylabel('Students',size = 16)
 ax.set_title('',size = 18)
 ax.set_xticks(x + bar_width / 2)
 ax.set_xticklabels(sorted(topics))
-ax.legend()
-plotname=xtitle.replace(' ','_').replace('[','').replace(']','').replace('%','Perct')+'.png'
+ax.legend(loc=2)
+ax.grid()
+plotname="%02d"%(n+1)+'_'+xtitle.replace(' ','_').replace('[','').replace(']','').replace('%','Perct')+'.png'
 #fig.tight_layout()
 fig.savefig(plotname)
