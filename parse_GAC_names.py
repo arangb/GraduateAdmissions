@@ -13,7 +13,9 @@ gac_dir='/work/GAC19/PS2019ALL' # Remember to include the / at the end
 #sed 's/\/h4/\/h4\n/g ; s/a href=/\n/g' index.html  | /bin/grep "\/h4" | sed 's/.*\">\(.*\)\,.*/\1/' | tr '\n' ',' | sed 's/\,/\"\,\"/g' 
 # First, adds newlines in every /h4 and "a href=" matches, then grep those lines only with /h4, and finally, remove everything outside of > and , (after the comma comes the first names). So this leaves us with only surnames. Then change the \n to a comma, and add the the inverted commas so that we can make a list.
 
-fac_names=["Agrawal","BenZvi","Bergstralh","Betti","Bigelow","Blackman","Bocko","Bodek","Boyd","Cline","Collins","Das","Demina","Dery","Dias","Douglass","Douglass","Duke","Eberly","Ferbel","Forrest","Foster","Franco","Frank","Froula","Gao","Bellido","Ghoshal","Gourdain","Guo","Haefner","Hagen","Helfer","Howell","Jordan","Knight","Knox","Knox","Mamajek","Manly","McCrory","McFarland","Melissinos","Milonni","Murray","Nakajima","Nichol","Oakes","Orr","Pipher","Quillen","Rajeev","Ren","Rothberg","Rygg","Savedoff","Schroeder","Sefkow","Seyler","Shapir","Slattery","Sobolewski","Stroud","Tarduno","Teitel","Thorndike","Vamivakas","Van Horn","Visser","Watson","Wolfs","Wu","Zhang","Zhong"]
+fac_names=["Agrawal","BenZvi","Bergstralh","Betti","Bigelow","Blackman","Bocko","Bodek","Boyd","Cline","Collins","Das","Demina","Dery","Dias","Douglass","Duke","Eberly","Ferbel","Forrest","Foster","Franco","Frank","Froula","Gao","Bellido","Ghoshal","Gourdain","Guo","Haefner","Hagen","Helfer","Howell","Jordan","Knight","Knox","Knox","Mamajek","Manly","McCrory","McFarland","Melissinos","Milonni","Murray","Nakajima","Nichol","Oakes","Orr","Pipher","Quillen","Rajeev","Ren","Rothberg","Rygg","Savedoff","Schroeder","Sefkow","Seyler","Shapir","Slattery","Sobolewski","Stroud","Tarduno","Teitel","Thorndike","Vamivakas","Van Horn","Visser","Watson","Wolfs","Wu","Zhang","Zhong"]
+
+fac_names = sorted(set(fac_names)) # remove duplicates and keep alphabetical order. We had Douglass twice for some reason... 
 
 # Removed 'Thomas', it gives too many false positives 
 # Removed 'Wolf', overlaps with Wolfs and Wolf Udo-Schroeder
@@ -36,6 +38,8 @@ for filename in sorted(os.listdir(gac_dir)): # order the pdf files alphabeticall
         for fac in fac_names:
 			grep_cmd = '/bin/grep \"' + fac + '\" \"' + filename_txt + '\"'
 			grep_result = os.popen(grep_cmd).read()
+			if (fac == 'Nichol' and ('Nicholas' in grep_result)) or (fac == 'Frank' and ('Wolfs' in grep_result)) or (fac in student_name):
+			    continue
 			if not grep_result == "": 
 				print(grep_cmd)
 				print(grep_result)
@@ -57,24 +61,29 @@ print("Wrote file StudentFacnames.csv with two rows: StudentName FoundFacultyNam
 
 # We can correct here wrong entries (once we have inspected the output of grep and see any errors):
 # Corrections for GAC19 folder
-#fac_count['Frank']-=4
-#fac_count['Ren']-=2
-#fac_count['Nichol']-=8
-#fac_count['Franco']-=1
-#fac_count['Guo']-=1
-#fac_count['Zhang']-=3
-#fac_count['Jordan']-=1
-#fac_count['Watson']-=2
-#fac_count['Duke']-=1
-#fac_count['Wu']-=-1
-#fac_count['Das']-=1
-#fac_count['Zhong']-=1
-#fac_count['Garcia-Bellido']+=1
-# Corrections for AdmittedDomestic
-#fac_count['Frank']-=2
-#fac_count['Nichol']-=6
-#fac_count['Guo']-=1
-#fac_count['Wu']-=-1
+# fac_count['Frank']-=12
+# fac_count['Ren']-=7
+# fac_count['Nichol']-=23
+# fac_count['Franco']-=1
+# fac_count['Guo']-=4
+# fac_count['Zhang']-=8
+# fac_count['Jordan']-=2
+# fac_count['Watson']-=1
+# fac_count['Duke']-=2
+# fac_count['Wu']-=-7
+# fac_count['Das']-=2
+# fac_count['Zhong']-=2
+# fac_count['BenZvi']+=1
+# fac_count['McFarland']+=1
+# fac_count['Gao']-=2
+# fac_count['Douglass']-=4
+# fac_count['Rajeev']-=1
+# fac_count['Orr']-=-1
+# fac_count['Schroeder']-=1
+# fac_count['Hagen']-=1
+# fac_count['Foster']-=1
+# fac_count['Boyd']-=1
+# fac_count['Wolfs']-=1
 
 # Save to csv file with counts:
 with open('grep_list.csv', 'w') as f:
