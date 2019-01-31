@@ -11,6 +11,7 @@ mpl.rc('font', family='sans-serif', size=16)
 
 #apps = pandas.read_excel('../../GAC18/admitted80.xlsx')
 #apps = pandas.read_excel('../../GAC18/180213_data_100.xlsx')
+#apps = pandas.read_excel('18_data_all.xlsx')
 apps = pandas.read_excel('190125_data_allapps.xlsx')
 # 
 ## Uncomment to view the entire input table.
@@ -240,10 +241,7 @@ print('Theory: %3i/%3i=%3.1f%% \nExperiment: %3i/%3i=%3.1f%% \nUndecided: %3i/%3
 # Now loop through each student entry and count the interests
 import operator
 
-topicCount = {}
-for t in topics:
-    topicCount[t] = 0
-    
+topicCount = dict.fromkeys(topics,0)
 total = 0
 for i in interests:
     for t in topics:
@@ -371,4 +369,34 @@ RLmedi = np.median(x)
 RLmode = stats.mode(x)[0][0]
 plt.text(35,0.85*max(n),'%-7s %4i\n%-7s %4.2f \n%-7s %4.2f\n%-7s %4.2f'%('Entries',len(x),'Mean',RLmean,'Median',RLmedi,'Mode',RLmode),fontsize=20)
 #plt.xscale('log')
-plt.savefig("10GAC-RecLettAvgScore.png") 
+plt.savefig("10GAC-RecLettAvgScore.png")
+
+### US University research tier
+# Top 100 liberal arts colleges by the Times Higher Education: https://www.timeshighereducation.com/student/best-universities/best-liberal-arts-colleges-united-states
+# Doctoral Research Universities: https://en.wikipedia.org/wiki/List_of_research_universities_in_the_United_States
+
+plt.figure() # New figure
+fig, ax = plt.subplots(figsize=(10, 10))
+# Read lists of universities:
+unames = pandas.read_csv('UniversitiesbyResearchTier.csv',names=['R1','R2','R3','Top100LiberalArts'])
+u_tier_count={'R1': 0, 'R2': 0, 'R3': 0, 'Top100LiberalArts': 0}
+u_tier_count['R1']=sum(unames['R1'].isin(apps['Institution 1 Name']))
+u_tier_count['R2']=sum(unames['R2'].isin(apps['Institution 1 Name']))
+u_tier_count['R3']=sum(unames['R3'].isin(apps['Institution 1 Name']))
+u_tier_count['Top100LiberalArts']=sum(unames['Top100LiberalArts'].isin(apps['Institution 1 Name']))
+print(u_tier_count)
+x=np.arange(4)
+bar_width=0.4
+ax.bar(x, u_tier_count.values(), bar_width, color='b')
+ax.set_xlabel('Carnegie Classification of University of applicant, as of 2018',size = 16)
+ax.set_ylabel('Students',size = 16)
+#ax.set_title('Carnegie Classification as of 2018',size = 18)
+# "R1: Doctoral Universities: Highest Research Activity"
+# "R2: Doctoral Universities: Higher Research Activity"
+# "R3: Doctoral Universities: Moderate Research Activity"
+ax.text(0.4,0.95,"R1: Doctoral Highest Research [N=%3i]"%len(unames['R1'].dropna()),transform=ax.transAxes)
+ax.text(0.4,0.9,"R2: Doctoral Higher Research [N=%3i]"%len(unames['R2'].dropna()),transform=ax.transAxes)
+ax.text(0.4,0.85,"R3: Doctoral Moderate Research [N=%3i]"%len(unames['R3'].dropna()),transform=ax.transAxes)
+ax.set_xticks(x)
+ax.set_xticklabels(u_tier_count.keys())
+plt.savefig("11GAC-UniversityResearchTier.png")
