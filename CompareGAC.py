@@ -7,13 +7,21 @@ import matplotlib.pyplot as plt
 import scipy.stats as stats
 from Analytics import get_URankCountsDictionary, get_RecLettScore,normalize_GPA
 
-inputfiles = [pandas.read_excel('18_data_all.xlsx'),pandas.read_excel('190125_data_allapps.xlsx')]
-hlabels=['2018','2019']
+
+f1=pandas.read_excel('18_data_all.xlsx')
+f2=pandas.read_excel('190125_data_allapps.xlsx')
+d1=f1[(f1['Citizenship']=='US') | (f1['Citizenship']=='PR')].reset_index(drop = True)
+d2=f2[(f2['Citizenship']=='US') | (f2['Citizenship']=='PR')].reset_index(drop = True)
+d3=f1[(f1['Citizenship']=='FN')].reset_index(drop = True)
+d4=f2[(f2['Citizenship']=='FN')].reset_index(drop = True)
+inputfiles = [f1,f2]
+datasets=[d1,d2,d3,d4]
+hlabels=['2018 US','2019 US', '2018 FN', '2019 FN']
 variables_to_plot = ['Institution 1 GPA Score','GRE Subject Total Score %','GRE Quantitative Percentile','Recommender']
 variables_histp = [[20,2.5,4.0,2],[20,0,100,2],[20,0,100,2],[30,0,30,1]] # the parameters [Nbins, xmin, xmax, legloc] for each histogram/variable
-hcolors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
+#hcolors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
+hcolors = ['#1f77b4', '#ff7f0e','#1f77b4', '#ff7f0e']
 hstyles = ['-','-','--','--',':',':'] # ['-','--',':','-.']
-
 
 mpl.rc('font', family='sans-serif', size=16)
 # Set styles and colors:
@@ -34,7 +42,7 @@ for n,v in enumerate(variables_to_plot):
 	# start with a rectangular Figure
 	fig, ax = plt.subplots(1,figsize=(10, 6))
 	goodNbins, xmin, xmax, legloc = variables_histp[n]
-	for j,d in enumerate(inputfiles):
+	for j,d in enumerate(datasets):
 		title=""
 		if 'Recommender' in v:
 			# Translate the scores given by the recommenders:
@@ -48,10 +56,12 @@ for n,v in enumerate(variables_to_plot):
 			h=d[v].dropna()
 		if 'GPA' in v:
 			h=normalize_GPA(h)
+		#Put some stats on the labels:
+		lbltxt=hlabels[j]+': N=%3i Mean=%5.2f Median=%5.2f'%(len(h),np.mean(h),np.median(h))
 		#Plot histogram:
-		ax.hist(h, goodNbins, density=True, range=[xmin,xmax], lw=3, color=hcolors[j], histtype='step', label=hlabels[j])
-		bboxwidth=.15
-		plot_statbox(ax,0.35+j*bboxwidth,0.8,hlabels[j],len(h),np.mean(h),np.median(h),stats.mode(h)[0][0],c=hcolors[j]) # 1.005 for boxes on the right
+		ax.hist(h, goodNbins, density=True, range=[xmin,xmax], lw=3, linestyle=hstyles[j], color=hcolors[j], histtype='step', label=lbltxt)
+		#bboxwidth=.15
+		#plot_statbox(ax,0.35+j*bboxwidth,0.8,hlabels[j],len(h),np.mean(h),np.median(h),stats.mode(h)[0][0],c=hcolors[j]) # 1.005 for boxes on the right
 	xtitle=h.name
 	if v=='Recommender':
 		xtitle="Average of recommendation letters scores per student"
@@ -106,12 +116,12 @@ ax.set_xticks(x + bar_width / 2)
 ax.set_xticklabels(sorted(topics))
 ax.legend(loc=2)
 ax.grid()
-plotname="%02d"%(n+1)+'_'+xtitle.replace(' ','_').replace('[','').replace(']','').replace('%','Perct')+'.png'
+plotname="%02d"%(n+2)+'_'+xtitle.replace(' ','_').replace('[','').replace(']','').replace('%','Perct')+'.png'
 #fig.tight_layout()
 fig.savefig(plotname)
 
 #
-# Now the university rankings 
+# Now the trend of university rankings 
 #
 fig, ax = plt.subplots(1,figsize=(10, 6))
 x=np.arange(4)
@@ -131,6 +141,6 @@ ax.set_xticks(x + bar_width / 2)
 ax.set_xticklabels(u_tier_count.keys())
 ax.legend(loc=2)
 ax.grid()
-plotname="%02d"%(n+2)+'_UniversityResearchTier.png'
+plotname="%02d"%(n+3)+'_UniversityResearchTier.png'
 plt.savefig(plotname)
 
