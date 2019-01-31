@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import scipy.stats as stats
+from Analytics import get_URankCountsDictionary, get_RecLettScore,normalize_GPA
 
 inputfiles = [pandas.read_excel('18_data_all.xlsx'),pandas.read_excel('190125_data_allapps.xlsx')]
 hlabels=['2018','2019']
@@ -24,26 +25,6 @@ mpl.rcParams['lines.dashed_pattern']=[2.8, 1.2]
 mpl.rcParams['lines.dashdot_pattern']=[4.8, 1.2, 0.8, 1.2]
 mpl.rcParams['lines.dotted_pattern']=[1.1, 1.1]
 mpl.rcParams['lines.scale_dashes']=True
-
-def normalize_GPA(gpas):
-	print('Normalizing GPAs')
-	normgpas=[]
-	for g in gpas:
-		if g>4.0 and g<=5.0:
-			#print(g,g*4./5.)
-			normgpas.append(g*4./5.)
-		elif g>5.0 and g<=10.0:
-			#print(g,g*4./10.)
-			normgpas.append(g*4./10.)
-		elif g>10.0 and g<=20.0:
-			#print(g,g*4./20.)
-			normgpas.append(g*4./20.)
-		elif g>20. and g<=100.:
-			#print(g,g*4./100.)
-			normgpas.append(g*4./100.)
-		else:
-			normgpas.append(g)
-	return pandas.Series(normgpas,name=gpas.name)
 
 def plot_statbox(ax=None,xpos=0.90,ypos=0.90,name="",nentries=0,mean=0.,median=0.,mode=0.,c='k'):
 	# The transform=ax.transAxes makes the absolute coordinates with 0,0 = lower left and 1,1 = upper right
@@ -113,9 +94,8 @@ for j,d in enumerate(inputfiles):
 
 	#print(topicCount)
 	bar_width = 0.35
-	opacity = 0.8
 	x = np.arange(len(topics))
-	ax.bar(x+j*bar_width, list(topicCount.values()), bar_width, alpha=opacity, color=hcolors[j],label=hlabels[j]+' N=%3i'%len(interests))
+	ax.bar(x+j*bar_width, list(topicCount.values()), bar_width, color=hcolors[j],label=hlabels[j]+' N=%3i'%len(interests))
 
 ax.set_ylim(top=1.2*ax.get_ylim()[1])
 xtitle='Field interests from application form'
@@ -129,3 +109,28 @@ ax.grid()
 plotname="%02d"%(n+1)+'_'+xtitle.replace(' ','_').replace('[','').replace(']','').replace('%','Perct')+'.png'
 #fig.tight_layout()
 fig.savefig(plotname)
+
+#
+# Now the university rankings 
+#
+fig, ax = plt.subplots(1,figsize=(10, 6))
+x=np.arange(4)
+bar_width=0.3
+for j,d in enumerate(inputfiles):
+	u_tier_count,u_tier_tot=get_URankCountsDictionary(d['Institution 1 Name'])
+	print(u_tier_count,u_tier_tot)
+	ax.bar(x+j*bar_width, u_tier_count.values(), bar_width, color=hcolors[j], label=hlabels[j])
+
+ax.set_xlabel('Carnegie Classification of University of applicant, as of 2018',size = 16)
+ax.set_ylabel('Students',size = 16)
+ax.set_title('Top Liberal Arts colleges from Times Higher Education',size = 18)
+ax.text(0.4,0.95,"R1: Doctoral Highest Research [N=%3i]"%u_tier_tot['R1'],transform=ax.transAxes)
+ax.text(0.4,0.9,"R2: Doctoral Higher Research [N=%3i]"%u_tier_tot['R2'],transform=ax.transAxes)
+ax.text(0.4,0.85,"R3: Doctoral Moderate Research [N=%3i]"%u_tier_tot['R3'],transform=ax.transAxes)
+ax.set_xticks(x + bar_width / 2)
+ax.set_xticklabels(u_tier_count.keys())
+ax.legend(loc=2)
+ax.grid()
+plotname="%02d"%(n+2)+'_UniversityResearchTier.png'
+plt.savefig(plotname)
+
