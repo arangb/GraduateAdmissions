@@ -10,8 +10,8 @@ mpl.rc('font', family='sans-serif', size=16)
 
 #apps = pandas.read_excel('../../GAC18/admitted80.xlsx')
 #apps = pandas.read_excel('../../GAC18/180213_data_100.xlsx')
-#apps = pandas.read_excel('18_data_all.xlsx')
-apps = pandas.read_excel('190125_data_allapps.xlsx')
+apps = pandas.read_excel('18_data_all.xlsx')
+#apps = pandas.read_excel('190125_data_allapps.xlsx')
 # 
 ## Uncomment to view the entire input table.
 # apps
@@ -133,8 +133,11 @@ def main():
     
     plt.savefig('00GAC-GPAGREcorr-projections.png')
     
-    print('\nGRE Mean = %5.3f, Median = %5.3f percentile'%(np.mean(gres[gres>0]),np.median(gres[gres>0])))
-    print('GPA Mean = %5.3f, Median = %5.3f \n'%(np.mean(apps['Normalized GPA'][apps['Normalized GPA']>0]),np.median(apps['Normalized GPA'][apps['Normalized GPA']>0])))
+    noPGRE=len(gres)-len(gres[gres>0])
+    print('\nDid NOT submit PGRE=%3i (%2.0f%%)'%(noPGRE,noPGRE*100./len(gres)))
+    print('GRE Mean = %5.3f, Median = %5.3f percentile'%(np.mean(gres[gres>0]),np.median(gres[gres>0])))
+    print('GPA Mean = %5.3f, Median = %5.3f'%(np.mean(apps['Normalized GPA'][apps['Normalized GPA']>0]),np.median(apps['Normalized GPA'][apps['Normalized GPA']>0])))
+
     #
     # GRE vs GPA scatter plot with U names
     # 
@@ -241,8 +244,8 @@ def main():
     Nwomen=len(apps[apps.Sex=='F']['URM'])
     NURM=len(apps[apps.URM=='Yes']['URM'])
     Ntot=len(apps['URM'])
-    print('Women: %3i/%3i=%4.2f%%'%(Nwomen,Ntot,float(Nwomen)/float(Ntot)*100.))
-    print('  URM: %3i/%3i=%4.2f%%'%(NURM,Ntot,float(NURM)/float(Ntot)*100.))
+    print('Women: %3i/%3i=%3.1f%%'%(Nwomen,Ntot,float(Nwomen)/float(Ntot)*100.))
+    print('  URM: %3i/%3i=%3.1f%%'%(NURM,Ntot,float(NURM)/float(Ntot)*100.))
     print(pandas.crosstab(apps.Citizenship1,apps.Sex,margins=True))
     print('\nAverage TOEFL score: %4.1f'%np.mean(apps['TOEFL Total']))
     
