@@ -4,7 +4,7 @@ import pandas
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import scipy.stats as stats
+#import scipy.stats as stats
 from Analytics import get_URankCountsDictionary, get_RecLettScore,normalize_GPA
 
 
@@ -127,7 +127,7 @@ fig, ax = plt.subplots(1,figsize=(10, 6))
 x=np.arange(4)
 bar_width=0.3
 for j,d in enumerate(inputfiles):
-	u_tier_count,u_tier_tot=get_URankCountsDictionary(d['Institution 1 Name'])
+	u_tier_count,u_tier_tot=get_URankCountsDictionary(d['Institution 1 Name'].dropna())
 	print(u_tier_count,u_tier_tot)
 	ax.bar(x+j*bar_width, u_tier_count.values(), bar_width, color=hcolors[j], label=hlabels[j])
 
@@ -139,6 +139,7 @@ ax.text(0.4,0.9,"R2: Doctoral Higher Research [N=%3i]"%u_tier_tot['R2'],transfor
 ax.text(0.4,0.85,"R3: Doctoral Moderate Research [N=%3i]"%u_tier_tot['R3'],transform=ax.transAxes)
 ax.set_xticks(x + bar_width / 2)
 ax.set_xticklabels(u_tier_count.keys())
+ax.set_ylim(top=1.2*ax.get_ylim()[1])
 ax.legend(loc=2)
 ax.grid()
 plotname="%02d"%(n+3)+'_UniversityResearchTier.png'

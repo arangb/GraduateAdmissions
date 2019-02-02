@@ -77,6 +77,12 @@ def get_URankCountsDictionary(ulist):
     and will count how many universities fall in each category'''
     # Read lists of universities:
     unames = pandas.read_csv('UniversitiesbyResearchTier.csv',names=['R1','R2','R3','Top100LiberalArts'])
+    # Remove things in the names that could derail a proper match:
+    fix_names={'-':' ', ',':'', 'at ':'', 'At ':'', 'of ':'', 'Of ':'', 'the ':'', 'and ':'', 'And ':'', 'The ':'', 'In ':'', 'SUNY':'Suny', 'CUNY':'Cuny', ' Main Campus':'', 'Endowed Colleges':''}
+    for k,v in fix_names.items():
+        ulist=ulist.str.replace(k,v) # the str.replace acts over a Series replacing a substring inside a string.
+        for c in unames.columns:     # the df.replace only works for whole entries, not substrigs! 
+            unames[c]=unames[c].str.replace(k,v)
     u_tier_count={'R1': 0, 'R2': 0, 'R3': 0, 'Top100LiberalArts': 0} # create dictionary
     u_tier_count['R1']=sum(unames['R1'].isin(ulist)) # isin() returns a boolean list of any ulist which appears in unames['R1']
     u_tier_count['R2']=sum(unames['R2'].isin(ulist)) # sum() just counts how many are True.
