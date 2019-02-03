@@ -78,7 +78,8 @@ def get_URankCountsDictionary(ulist):
     # Read lists of universities:
     unames = pandas.read_csv('UniversitiesbyResearchTier.csv',names=['R1','R2','R3','Top100LiberalArts'])
     # Remove things in the names that could derail a proper match:
-    fix_names={'-':' ', ',':'', 'at ':'', 'At ':'', 'of ':'', 'Of ':'', 'the ':'', 'and ':'', 'And ':'', 'The ':'', 'In ':'', 'SUNY':'Suny', 'CUNY':'Cuny', ' Main Campus':'', 'Endowed Colleges':''}
+    fix_names={'-':' ', ',':'', 'at ':'', 'At ':'', 'of ':'', 'Of ':'', 'the ':'', 'The ':'', 'and ':'', 'And ':'', \
+    "'s":"s", 'In ':'', 'SUNY':'Suny', 'CUNY':'Cuny', ' Main Campus':'', 'Endowed Colleges':''}
     for k,v in fix_names.items():
         ulist=ulist.str.replace(k,v) # the str.replace acts over a Series replacing a substring inside a string.
         for c in unames.columns:     # the df.replace only works for whole entries, not substrigs! 
