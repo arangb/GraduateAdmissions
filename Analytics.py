@@ -10,8 +10,8 @@ mpl.rc('font', family='sans-serif', size=16)
 
 #apps = pandas.read_excel('../../GAC18/admitted80.xlsx')
 #apps = pandas.read_excel('../../GAC18/180213_data_100.xlsx')
-apps = pandas.read_excel('18_data_all.xlsx')
-#apps = pandas.read_excel('190125_data_allapps.xlsx')
+#apps = pandas.read_excel('18_data_all.xlsx')
+apps = pandas.read_excel('190125_data_allapps.xlsx')
 # 
 ## Uncomment to view the entire input table.
 # apps

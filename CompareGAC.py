@@ -15,8 +15,9 @@ d2=f2[(f2['Citizenship']=='US') | (f2['Citizenship']=='PR')].reset_index(drop = 
 d3=f1[(f1['Citizenship']=='FN')].reset_index(drop = True)
 d4=f2[(f2['Citizenship']=='FN')].reset_index(drop = True)
 inputfiles = [f1,f2]
-datasets=[d1,d2,d3,d4]
-hlabels=['2018 US','2019 US', '2018 FN', '2019 FN']
+#datasets=[d1,d2,d3,d4] # hlabels=['2018 US','2019 US', '2018 FN', '2019 FN']
+datasets=[f1,f2]
+hlabels=['2018','2019']
 variables_to_plot = ['Institution 1 GPA Score','GRE Subject Total Score %','GRE Quantitative Percentile','Recommender']
 variables_histp = [[20,2.5,4.0,2],[20,0,100,2],[20,0,100,2],[30,0,30,1]] # the parameters [Nbins, xmin, xmax, legloc] for each histogram/variable
 #hcolors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
@@ -144,4 +145,41 @@ ax.legend(loc=2)
 ax.grid()
 plotname="%02d"%(n+3)+'_UniversityResearchTier.png'
 plt.savefig(plotname)
-
+#
+# Now the trend of nationalities 
+#
+fig, ax = plt.subplots(1,figsize=(10, 6))
+fig.subplots_adjust(bottom=0.2) # make room for big country names
+bothnames=[]
+for j,d in enumerate(inputfiles):
+	natcount=d.groupby('Citizenship1').Citizenship1.count() # counts for each unique country
+	bignatcount=natcount[natcount>5]
+	#print(type(bignatcount))
+	names=[x for x,v in bignatcount.items()]
+	bothnames+=names
+# Now remove duplicate entries from bothnames and sort alphabetically:
+natnames=sorted(list(set(bothnames)))
+x=np.arange(len(natnames))
+bar_width=0.4
+# Ok, now we can go back and count the entries:
+for j,d in enumerate(inputfiles):
+	natcount=d.groupby('Citizenship1').Citizenship1.count() # counts for each unique country
+	y=[]
+	for nat in natnames:
+		if nat in natcount.index: # in case one country is in one dataset but not the other!
+			y.append(natcount[nat])
+		else:
+			y.append(0)
+	print(dict(zip(natnames, y)))
+	ax.bar(x+j*bar_width, y, bar_width, color=hcolors[j], label=hlabels[j])
+	
+#ax.set_xlabel('',size = 16)
+ax.set_ylabel('Students',size = 16)
+ax.set_title('(Main) Nationalities of applicants',size = 18)
+ax.set_xticks(x + bar_width / 2)
+ax.set_xticklabels(natnames,rotation=45)
+#ax.set_ylim(top=1.2*ax.get_ylim()[1])
+ax.legend(loc=2)
+ax.grid()
+plotname="%02d"%(n+4)+'_Nationalities.png'
+plt.savefig(plotname)
