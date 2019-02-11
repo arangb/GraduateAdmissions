@@ -11,11 +11,11 @@ gac_dir='/work/GAC19/PS2019ALL' # Remember to include the / at the end
 #Download faculty page:
 #wget http://www.pas.rochester.edu/people/faculty/index.html
 #sed 's/\/h4/\/h4\n/g ; s/a href=/\n/g' index.html  | /bin/grep "\/h4" | sed 's/.*\">\(.*\)\,.*/\1/' | tr '\n' ',' | sed 's/\,/\"\,\"/g' 
-# First, adds newlines in every /h4 and "a href=" matches, then grep those lines only with /h4, and finally, remove everything outside of > and , (after the comma comes the first names). So this leaves us with only surnames. Then change the \n to a comma, and add the the inverted commas so that we can make a list.
+# First, adds newlines in every /h4 and "a href=" matches, then grep those lines only with /h4, and finally, remove everything outside of > and , (after the comma comes the first names). So this leaves us with only surnames. Then change the \n to a comma, and add the quotes so that we can make a list.
 
 fac_names=["Agrawal","BenZvi","Bergstralh","Betti","Bigelow","Blackman","Bocko","Bodek","Boyd","Cline","Collins","Das","Demina","Dery","Dias","Douglass","Duke","Eberly","Ferbel","Forrest","Foster","Franco","Frank","Froula","Gao","Bellido","Ghoshal","Gourdain","Guo","Haefner","Hagen","Helfer","Howell","Jordan","Knight","Knox","Knox","Mamajek","Manly","McCrory","McFarland","Melissinos","Milonni","Murray","Nakajima","Nichol","Oakes","Orr","Pipher","Quillen","Rajeev","Ren","Rothberg","Rygg","Savedoff","Schroeder","Sefkow","Seyler","Shapir","Slattery","Sobolewski","Stroud","Tarduno","Teitel","Thorndike","Vamivakas","Van Horn","Visser","Watson","Wolfs","Wu","Zhang","Zhong"]
 
-fac_names = sorted(set(fac_names)) # remove duplicates and keep alphabetical order. We had Douglass twice for some reason... 
+fac_names = sorted(set(fac_names)) # remove duplicates and keep alphabetical order. We had Douglass twice.
 
 # Removed 'Thomas', it gives too many false positives 
 # Removed 'Wolf', overlaps with Wolfs and Wolf Udo-Schroeder

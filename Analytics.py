@@ -40,6 +40,9 @@ def normalize_GPA(gpas):
 		elif g>20. and g<=100.:
 			#print(g,g*4./100.)
 			normgpas.append(g*4./100.)
+		elif g<1.7: # probably German System 1.0-1.5 is best, 1.6-2.0 is good, 2.6-3.5 is Satisfactory
+			normgpas.append(4.-(g-1.0))
+			print('Found a GPA below 2.0: probably from Germany? Double check! GPA=%3.2f --> NormGPA=%3.2f'%(g,4.-(g-1.0)))
 		else:
 			normgpas.append(g)
 	return pandas.Series(normgpas,name=gpas.name)

@@ -24,7 +24,7 @@ plt.title("Number of applications")
 plt.ylabel("Number of applicants")
 plt.xlabel("Year")
 plt.grid()
-plt.xlim(2004.5,2018.5)
+plt.xlim(2004.5,2019.5)
 plt.savefig('Trends01-NumberPerYear.png')
 
 # Plot composition of offers
@@ -43,7 +43,7 @@ plt.title("Composition of offers made")
 plt.ylabel("% of offers")
 plt.xlabel("Year")
 plt.grid()
-plt.xlim(2004.5,2018.5)
+plt.xlim(2004.5,2019.5)
 plt.savefig('Trends02-OfferComositionPerYear.png')
 
 # Plot composition of each entering cohort
@@ -62,7 +62,7 @@ plt.title("Composition of each cohort")
 plt.ylabel("% of those accepted")
 plt.xlabel("Year")
 plt.grid()
-plt.xlim(2004.5,2018.5)
+plt.xlim(2004.5,2019.5)
 plt.savefig('Trends03-AcceptComositionPerYear.png')
 
 # Plot acceptance rates
@@ -82,7 +82,7 @@ plt.title("Yield: accepted/offered")
 plt.ylabel("% accept of offers in that group")
 plt.xlabel("Year")
 plt.grid()
-plt.xlim(2004.5,2018.5)
+plt.xlim(2004.5,2019.5)
 plt.savefig('Trends04-YieldsPerYear.png')
 
 # Number of offers and accepts
@@ -95,7 +95,7 @@ plt.title("Total numbers of accepted, offered")
 plt.ylabel("Number of students / %")
 plt.xlabel("Year")
 plt.grid()
-plt.xlim(2004.5,2018.5)
+plt.xlim(2004.5,2019.5)
 plt.savefig('Trends05-NumAccOffYieldPerYear.png')
 
 # Plot Offers vs Acceptances in each year, fit to power law
