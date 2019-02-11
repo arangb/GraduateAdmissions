@@ -23,8 +23,8 @@ apps = pandas.read_excel('190125_data_allapps.xlsx')
 # 
 # ### Total Scores
 
-# Plot correlation between GRE and GPA:
 def normalize_GPA(gpas):
+	''' Normalize GPA to a top score of 4.0'''
 	print('Normalizing GPAs')
 	normgpas=[]
 	for g in gpas:
@@ -40,26 +40,28 @@ def normalize_GPA(gpas):
 		elif g>20. and g<=100.:
 			#print(g,g*4./100.)
 			normgpas.append(g*4./100.)
-		elif g<1.7: # probably German System 1.0-1.5 is best, 1.6-2.0 is good, 2.6-3.5 is Satisfactory
+		elif g>0. and g<1.7: # probably German System 1.0-1.5 is best, 1.6-2.0 is good, 2.6-3.5 is Satisfactory
 			normgpas.append(4.-(g-1.0))
 			print('Found a GPA below 2.0: probably from Germany? Double check! GPA=%3.2f --> NormGPA=%3.2f'%(g,4.-(g-1.0)))
 		else:
 			normgpas.append(g)
 	return pandas.Series(normgpas,name=gpas.name)
 
-def infoByTopic(dframe, topic, topicSorted, whichint='App - physics_focus'):
-    frame = dframe.dropna(subset=[topic, whichint])
-    infoByInt = {x:[] for x in topicSorted[:,0]}
-    for info, top in zip(frame[topic], frame[whichint]):
-        for t in topicSorted[:,0]:
-            if t in top:
-                infoByInt[t].append(info)
-    alldat = []
-    for i, t in enumerate(topicSorted[:,0]):
-        data = infoByInt[t]
-        alldat.append(data)
-        
-    return alldat
+def infoByTopic(dframe, info, topicSorted, whichint='App - physics_focus'):
+	''' Return list with values for info, for example: 'Normalized GPA', 
+	    for each topicsorted, for example ['AP','CM','HEP']'''
+	frame = dframe.dropna(subset=[info, whichint])
+	infoByInt = {x:[] for x in topicSorted[:,0]}
+	for infoval, top in zip(frame[info], frame[whichint]):
+		for t in topicSorted[:,0]:
+			if t in top:
+				infoByInt[t].append(infoval)
+	alldat = []
+	for i, t in enumerate(topicSorted[:,0]):
+		data = infoByInt[t]
+		alldat.append(data)
+		
+	return alldat
 
 def get_RecLettScore(letters):
     '''Input: A dataframe with columns named "Recommender 1 Rating", etc... 
