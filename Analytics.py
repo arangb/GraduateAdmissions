@@ -8,10 +8,10 @@ import matplotlib.pyplot as plt
 
 mpl.rc('font', family='sans-serif', size=16)
 
-#apps = pandas.read_excel('../../GAC18/admitted80.xlsx')
+apps = pandas.read_excel('19_admit.xlsx')
 #apps = pandas.read_excel('../../GAC18/180213_data_100.xlsx')
 #apps = pandas.read_excel('18_data_all.xlsx')
-apps = pandas.read_excel('190125_data_allapps.xlsx')
+#apps = pandas.read_excel('190125_data_allapps.xlsx')
 # 
 ## Uncomment to view the entire input table.
 # apps
@@ -172,7 +172,14 @@ def main():
     plt.savefig('00GAC-GPAGREcorr-scatter.png')
     #
     # GRE breakdown
-    # 
+    #
+    vpd=apps['GRE Verbal Percentile'].dropna()
+    vpl='Mean = %3.1f, Median = %3.1f'%(np.mean(vpd),np.median(vpd))
+    pgrel='Mean = %3.1f, Median = %3.1f'%(np.mean(gres[gres>0]),np.median(gres[gres>0]))
+    awd=apps['GRE Analytical Writing Percentile'].dropna()
+    awl='Mean = %3.1f, Median = %3.1f'%(np.mean(awd),np.median(awd))
+    qpd=apps['GRE Quantitative Percentile'].dropna()
+    qpl='Mean = %3.1f, Median = %3.1f'%(np.mean(qpd),np.median(qpd))
     axes = apps.hist(column=['GRE Verbal Percentile',
                              'GRE Subject Total Score %',
                              'GRE Analytical Writing Percentile',
@@ -182,11 +189,26 @@ def main():
                        bins=np.linspace(0,100,11),
                        color='royalblue',
                        histtype='stepfilled',
+                       label=[vpl,pgrel,awl,qpl],
                        figsize=(10,7))
-    
+    #leg=axes.legend(fontsize=10, loc=2)
     fig = plt.gcf()
     fig.tight_layout()
     fig.savefig("01GAC-GREBreakdown.png")
+    #
+    # Summary gender and URM percentage:
+    #
+    Nwomen=len(apps[apps.Sex=='F']['URM'])
+    NURM=len(apps[apps.URM=='Yes']['URM'])
+    Ntot=len(apps['URM'])
+    print('Women: %3i/%-3i=%3.1f%%'%(Nwomen,Ntot,float(Nwomen)/float(Ntot)*100.))
+    print('  URM: %3i/%-3i=%3.1f%%'%(NURM,Ntot,float(NURM)/float(Ntot)*100.))
+    print(pandas.crosstab(apps.Citizenship1,apps.Sex,margins=True))
+    us=len(apps[(apps['Citizenship']=='US') | (apps['Citizenship']=='PR')])
+    fn=len(apps[(apps['Citizenship']=='FN')]) 
+    print('\nUS: %3i/%-3i=%3.1f%%'%(us,us+fn,float(us)/float(us+fn)*100.))
+    print('FN: %3i/%-3i=%3.1f%%'%(fn,us+fn,float(fn)/float(us+fn)*100.))
+    print('\nAverage TOEFL score: %4.1f'%np.mean(apps['TOEFL Total']))
     #
     # Breakdown by Gender
     #
@@ -211,7 +233,7 @@ def main():
         ax.hist(scores[gre][women],
                 bins=np.linspace(0, 100, 11),
                 histtype='stepfilled',
-                label='Women',
+                label='Women %3i/%-3i=%2.0f%%'%(Nwomen,Ntot,float(Nwomen)/float(Ntot)*100.),
                 alpha=0.5)
         ax.set(title=gre)
         ax.grid()
@@ -242,7 +264,7 @@ def main():
         ax.hist(scores[gre][urm],
                 bins=np.linspace(0, 100, 11),
                 histtype='stepfilled',
-                label='URM',
+                label='URM %3i/%-3i=%2.0f%%'%(NURM,Ntot,float(NURM)/float(Ntot)*100.),
                 alpha=0.5)
         ax.set(title=gre)
         ax.grid()
@@ -251,16 +273,6 @@ def main():
     
     fig.tight_layout()
     fig.savefig("03GAC-URMBreakdown.png")
-    
-    ### Summary percentage:
-    Nwomen=len(apps[apps.Sex=='F']['URM'])
-    NURM=len(apps[apps.URM=='Yes']['URM'])
-    Ntot=len(apps['URM'])
-    print('Women: %3i/%3i=%3.1f%%'%(Nwomen,Ntot,float(Nwomen)/float(Ntot)*100.))
-    print('  URM: %3i/%3i=%3.1f%%'%(NURM,Ntot,float(NURM)/float(Ntot)*100.))
-    print(pandas.crosstab(apps.Citizenship1,apps.Sex,margins=True))
-    print('\nAverage TOEFL score: %4.1f'%np.mean(apps['TOEFL Total']))
-    
     #
     # Categorization by Interests
     #
@@ -301,7 +313,7 @@ def main():
     Nth=len(apps['App - physics_major'][apps['App - physics_major']=='Theory'])
     Nex=len(apps['App - physics_major'][apps['App - physics_major']=='Experiment'])
     Ntot=len(apps['App - physics_major'].dropna())
-    print('Theory: %3i/%3i=%3.1f%% \nExperiment: %3i/%3i=%3.1f%% \nUndecided: %3i/%3i=%3.1f%%' %(Nth,Ntot,100.*float(Nth)/float(Ntot),Nex,Ntot,100.*float(Nex)/float(Ntot),Ntot-Nex-Nth,Ntot,100.*float(Ntot-Nex-Nth)/float(Ntot)))
+    print('Theory: %3i/%-3i=%3.1f%% \nExperiment: %3i/%-3i=%3.1f%% \nUndecided: %3i/%-3i=%3.1f%%' %(Nth,Ntot,100.*float(Nth)/float(Ntot),Nex,Ntot,100.*float(Nex)/float(Ntot),Ntot-Nex-Nth,Ntot,100.*float(Ntot-Nex-Nth)/float(Ntot)))
     
     # Now loop through each student entry and count the interests
     import operator
