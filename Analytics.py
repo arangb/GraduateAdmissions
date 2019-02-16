@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 mpl.rc('font', family='sans-serif', size=16)
 
-apps = pandas.read_excel('19_admit.xlsx')
+apps = pandas.read_excel('190215_scores_all.xlsx')
 #apps = pandas.read_excel('../../GAC18/180213_data_100.xlsx')
 #apps = pandas.read_excel('18_data_all.xlsx')
 #apps = pandas.read_excel('190125_data_allapps.xlsx')
@@ -16,6 +16,8 @@ apps = pandas.read_excel('19_admit.xlsx')
 ## Uncomment to view the entire input table.
 # apps
 # Make cuts:
+#apps = apps[apps['New Rank']<76].reset_index(drop = True)
+apps = apps[apps['STATUS']=="ADMIT"].reset_index(drop = True)
 #apps=apps[apps['GRE Subject Total Score %']>0].reset_index(drop = True)
 #apps=apps[(apps['Citizenship']=='US') | (apps['Citizenship']=='PR')].reset_index(drop = True)
 #apps=apps[(apps['Citizenship']=='FN')].reset_index(drop = True)
@@ -155,9 +157,10 @@ def main():
     # 
     plt.figure() # New figure
     fig, ax = plt.subplots(figsize=(10, 10))
+    fig.subplots_adjust(right=0.7)
     # Plot correlation between GRE and GPA:
-    gres=apps['GRE Subject Total Score %'].fillna(-10) # just in case there are empty values
-    gpas=apps['Normalized GPA'].fillna(-10)   # idem
+    gres=apps['GRE Subject Total Score %'].fillna(-100) # just in case there are empty values
+    gpas=apps['Normalized GPA'].fillna(-100)   # idem
     universities=apps['Institution 1 Name']
     #print(gres[1],gpas[1])
     plt.scatter(gres,gpas,color='blue',s=5,edgecolor='none')
@@ -167,7 +170,8 @@ def main():
     
     plt.xlabel("GRE Subject Total Score %")
     plt.ylabel("Undergrad GPA")
-    plt.ylim(3.2,4.02)
+    plt.ylim(3.3,4.02)
+    plt.xlim(20,100)
     plt.tight_layout()
     plt.savefig('00GAC-GPAGREcorr-scatter.png')
     #

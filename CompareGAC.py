@@ -7,17 +7,21 @@ import matplotlib.pyplot as plt
 #import scipy.stats as stats
 from Analytics import get_URankCountsDictionary, get_RecLettScore,normalize_GPA
 
-
-f1=pandas.read_excel('18_data_all.xlsx')
-f2=pandas.read_excel('190125_data_allapps.xlsx')
-d1=f1[(f1['Citizenship']=='US') | (f1['Citizenship']=='PR')].reset_index(drop = True)
-d2=f2[(f2['Citizenship']=='US') | (f2['Citizenship']=='PR')].reset_index(drop = True)
-d3=f1[(f1['Citizenship']=='FN')].reset_index(drop = True)
-d4=f2[(f2['Citizenship']=='FN')].reset_index(drop = True)
-inputfiles = [f1,f2]
+f1=pandas.read_excel('190215_scores_all.xlsx')
+f2=pandas.read_excel('190215_scores_all.xlsx')
+d1=f1
+d2=f2[(f2['STATUS']=='ADMIT')].reset_index(drop = True)
+#d4=f2[(f2['Citizenship']=='FN')].reset_index(drop = True)
+#f1=pandas.read_excel('18_data_all.xlsx')
+#f2=pandas.read_excel('190125_data_allapps.xlsx')
+#d1=f1[(f1['Citizenship']=='US') | (f1['Citizenship']=='PR')].reset_index(drop = True)
+#d2=f2[(f2['Citizenship']=='US') | (f2['Citizenship']=='PR')].reset_index(drop = True)
+#d3=f1[(f1['Citizenship']=='FN')].reset_index(drop = True)
+#d4=f2[(f2['Citizenship']=='FN')].reset_index(drop = True)
+inputfiles = [d1,d2]
 #datasets=[d1,d2,d3,d4] # hlabels=['2018 US','2019 US', '2018 FN', '2019 FN']
-datasets=[f1,f2]
-hlabels=['2018','2019']
+datasets=[d1,d2]
+hlabels=['Applied','Admitted']
 variables_to_plot = ['Institution 1 GPA Score','GRE Subject Total Score %','GRE Quantitative Percentile','Recommender']
 variables_histp = [[20,2.5,4.0,2],[20,0,100,2],[20,0,100,2],[30,0,30,1]] # the parameters [Nbins, xmin, xmax, legloc] for each histogram/variable
 #hcolors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
@@ -79,6 +83,7 @@ for n,v in enumerate(variables_to_plot):
 # Now let's plot trends with interests
 #
 fig, ax = plt.subplots(1,figsize=(10, 6))
+#print('Check the two files have the same topic list:')
 for j,d in enumerate(inputfiles):
 	# Store unique list of student topics (to be used in pie chart)
 	interests=d['App - physics_focus'].dropna()
@@ -97,6 +102,7 @@ for j,d in enumerate(inputfiles):
 				topics.append(s)
 	# Now loop through each student entry and count the interests
 	import operator
+	#print(topics)
 	topicCount = dict.fromkeys(sorted(topics),0)
 	for i in interests:
 		for t in sorted(topics):
@@ -153,7 +159,7 @@ fig.subplots_adjust(bottom=0.2) # make room for big country names
 bothnames=[]
 for j,d in enumerate(inputfiles):
 	natcount=d.groupby('Citizenship1').Citizenship1.count() # counts for each unique country
-	bignatcount=natcount[natcount>5]
+	bignatcount=natcount[natcount>4]
 	#print(type(bignatcount))
 	names=[x for x,v in bignatcount.items()]
 	bothnames+=names

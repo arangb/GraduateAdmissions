@@ -98,6 +98,22 @@ plt.grid()
 plt.xlim(2004.5,2019.5)
 plt.savefig('Trends05-NumAccOffYieldPerYear.png')
 
+
+# # Plot acceptance rates for US and FN
+# #domperc=100.*(Data.DomAcc/Data.DomOff)
+# #intlperc=100.*(Data.IntlAcc/Data.IntlOff)
+# import uncertainties
+# eff,eff_errlo,eff_errhi
+# plt.errorbar(Data.Year, eff, [eff_errlo,eff_errhi], linestyle='None', marker='o', markerfacecolor='blue', markersize=5.2)
+# plt.xlim(2004.5,2019.5)
+# plt.title("")
+# plt.xlabel("Year")
+# plt.ylabel("Yield: accepted/offered")
+# plt.grid()
+
+# plt.savefig('Trends06-YieldPerYearErroBarsFit.png')
+
+
 # Plot Offers vs Acceptances in each year, fit to power law
 # The data is clearly non-linear: the first 40 offers yield around 5 accepts, and the last 40 offers yield around 20.
 # We will need a power law function:
