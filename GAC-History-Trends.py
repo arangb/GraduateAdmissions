@@ -12,8 +12,9 @@ import uncertainties.unumpy as unp
 
 mpl.rc('font', family='sans-serif', size=14)
 plt.rcParams.update({'mathtext.default':  'regular' })
-
 Data = pandas.read_excel('GACHistory.xlsx')
+
+# Plot number of applicants
 plt.plot(Data.Year, Data.Domestic+Data.International,linewidth=2.0, linestyle='--', color='orange')
 plt.plot(Data.Year, Data.International,linewidth=2.0, linestyle='-', color='blue', marker='^', markersize=5.2)
 plt.plot(Data.Year, Data.Domestic, linewidth=2.0, linestyle='-', color='red', marker='o', markersize=5.2)
@@ -26,6 +27,25 @@ plt.xlabel("Year")
 plt.grid()
 plt.xlim(2004.5,2019.5)
 plt.savefig('Trends01-NumberPerYear.png')
+
+# Plot composition of applicants:
+plt.figure()
+totalapp=Data.Domestic+Data.International
+domperc=100.*(Data.Domestic/totalapp)
+intlperc=100.*(Data.International/totalapp)
+womenperc=100*((Data.DomWom+Data.IntlWom)/totalapp)
+urmperc=100*((Data.DomURM+Data.IntlURM)/totalapp)
+plt.plot(Data.Year, domperc, linewidth=2.0, linestyle='-', color='red', marker='o', markersize=5.2)
+plt.plot(Data.Year, intlperc,linewidth=2.0, linestyle='-', color='blue', marker='^', markersize=5.2)
+plt.plot(Data.Year, womenperc, linewidth=2.0, linestyle='-', color='green', marker='>', markersize=5.2)
+plt.plot(Data.Year, urmperc,linewidth=2.0, linestyle='-', color='black', marker='*', markersize=5.2)
+plt.legend( ('Domestic','Intl','Women','URM') , loc='upper right', frameon=False,numpoints=1)
+plt.title("Composition of applicants")
+plt.ylabel("% of applicants")
+plt.xlabel("Year")
+plt.grid()
+plt.xlim(2004.5,2019.5)
+plt.savefig('Trends01-ApplicantCompositionPerYear.png')
 
 # Plot composition of offers
 plt.figure()
@@ -44,7 +64,7 @@ plt.ylabel("% of offers")
 plt.xlabel("Year")
 plt.grid()
 plt.xlim(2004.5,2019.5)
-plt.savefig('Trends02-OfferComositionPerYear.png')
+plt.savefig('Trends02-OfferCompositionPerYear.png')
 
 # Plot composition of each entering cohort
 plt.figure()
@@ -63,7 +83,7 @@ plt.ylabel("% of those accepted")
 plt.xlabel("Year")
 plt.grid()
 plt.xlim(2004.5,2019.5)
-plt.savefig('Trends03-AcceptComositionPerYear.png')
+plt.savefig('Trends03-AcceptCompositionPerYear.png')
 
 # Plot acceptance rates
 plt.figure()
