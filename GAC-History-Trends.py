@@ -142,7 +142,7 @@ ymin, ymax = ax.get_ylim()
 ax.set_ylim(ymin,ymax*1.05)
 plt.savefig('Trends05-NumAccOffYieldPerYear.png')
 
-# Plot acceptance rates of US, FN, men, women and URM
+# Plot offer/appl percent ratios of US, FN, men, women and URM
 # For example, for women: (N women offered/ TOT offers) / (N women applied/TOT applied)
 plt.figure()
 AccDom=dompercoff/dompercapp
@@ -157,15 +157,15 @@ plt.plot(Data.Year, AccWomen, linewidth=2.0, linestyle='-', color='green', marke
 plt.plot(Data.Year, AccURM,linewidth=2.0, linestyle='-', color='black', marker='*', markersize=5.2)
 plt.legend(('USA','Foreign','Men','Women','URM') , loc='upper right', frameon=False,numpoints=1)
 			 #ncol=5, mode='expand', handlelength=1.5, handletextpad=0.20, columnspacing=0.5, borderaxespad=0.1)
-plt.title("Acceptance Ratio: % offered / % applied")
-plt.ylabel("Acceptance Ratio")
+plt.title("Offer Ratio: % offered / % applied")
+plt.ylabel("Offer Ratio")
 plt.xlabel("Year")
 plt.grid()
 plt.xlim(2004.5,2019.5)
 #ax=plt.gca()
 #ymin, ymax = ax.get_ylim()
 #ax.set_ylim(ymin,ymax*1.05)
-plt.savefig('Trends06-AccRateUSFNMenWomURMPerYear.png')
+plt.savefig('Trends06-OffAppPercRatioUSFNMenWomURMPerYear.png')
 
 # Plot off/app for US, FN, men, women and URM 
 # For example, for women: N women offered/N women applied
@@ -182,30 +182,15 @@ plt.plot(Data.Year, Women, linewidth=2.0, linestyle='-', color='green', marker='
 plt.plot(Data.Year, URM,linewidth=2.0, linestyle='-', color='black', marker='*', markersize=5.2)
 plt.legend(('USA','Foreign','Men','Women','URM') , loc='upper right', frameon=False,numpoints=1)
 			 #ncol=5, mode='expand', handlelength=1.5, handletextpad=0.20, columnspacing=0.5, borderaxespad=0.1)
-plt.title("Success rate: offered/applied")
-plt.ylabel("Success rate")
+plt.title("Offer rate: offered/applied")
+plt.ylabel("Offer rate %")
 plt.xlabel("Year")
 plt.grid()
 plt.xlim(2004.5,2019.5)
 #ax=plt.gca()
 #ymin, ymax = ax.get_ylim()
 #ax.set_ylim(ymin,ymax*1.05)
-plt.savefig('Trends07-SuccessRateUSFNMenWomURMPerYear.png')
-
-
-# # Plot acceptance rates for US and FN
-# #domperc=100.*(Data.DomAcc/Data.DomOff)
-# #intlperc=100.*(Data.IntlAcc/Data.IntlOff)
-# import uncertainties
-# eff,eff_errlo,eff_errhi
-# plt.errorbar(Data.Year, eff, [eff_errlo,eff_errhi], linestyle='None', marker='o', markerfacecolor='blue', markersize=5.2)
-# plt.xlim(2004.5,2019.5)
-# plt.title("")
-# plt.xlabel("Year")
-# plt.ylabel("Yield: accepted/offered")
-# plt.grid()
-
-# plt.savefig('Trends06-YieldPerYearErroBarsFit.png')
+plt.savefig('Trends07-OfferRateUSFNMenWomURMPerYear.png')
 
 
 # Plot Offers vs Acceptances in each year, fit to power law
