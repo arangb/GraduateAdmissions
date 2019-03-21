@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from scipy import optimize
 import uncertainties as unc
 import uncertainties.unumpy as unp
-
+np.set_printoptions(precision=1)
 mpl.rc('font', family='sans-serif', size=14)
 plt.rcParams.update({'mathtext.default':  'regular' })
 Data = pandas.read_excel('GACHistory.xlsx')
@@ -150,11 +150,14 @@ AccIntl=intlpercoff/intlpercapp
 AccWomen=womenpercoff/womenpercapp
 AccMen=(100*(totaloff-(Data.DomOffWom+Data.IntlOffWom))/totaloff)/(100*(totalapp-(Data.DomWom+Data.IntlWom))/totalapp)
 AccURM=urmpercoff/urmpercapp
+avg=totaloff/totalapp
+print('Women offer ratio ',AccWomen.values)
+print('Avg Offer Ratio: Dom=%3.2f Intl=%3.2f Wom=%3.2f Men=%3.2f URM=%3.2f'%(np.mean(AccDom),np.mean(AccIntl),np.mean(AccWomen),np.mean(AccMen),np.mean(AccURM)))
 plt.plot(Data.Year, AccDom, linewidth=2.0, linestyle='-', color='red', marker='o', markersize=5.2)
 plt.plot(Data.Year, AccIntl,linewidth=2.0, linestyle='-', color='blue', marker='^', markersize=5.2)
 plt.plot(Data.Year, AccMen,linewidth=2.0, linestyle='-', color='orange',marker='+', markersize=5.2)
 plt.plot(Data.Year, AccWomen, linewidth=2.0, linestyle='-', color='green', marker='>', markersize=5.2)
-plt.plot(Data.Year, AccURM,linewidth=2.0, linestyle='-', color='black', marker='*', markersize=5.2)
+plt.plot(Data.Year, AccURM, linewidth=2.0, linestyle='-', color='black', marker='*', markersize=5.2)
 plt.legend(('USA','Foreign','Men','Women','URM') , loc='upper right', frameon=False,numpoints=1)
 			 #ncol=5, mode='expand', handlelength=1.5, handletextpad=0.20, columnspacing=0.5, borderaxespad=0.1)
 plt.title("Offer Ratio: % offered / % applied")
@@ -175,12 +178,16 @@ Intl=100*Data.IntlOff/Data.International
 Women=100*(Data.DomOffWom+Data.IntlOffWom)/(Data.DomWom+Data.IntlWom)
 Men=100*(totaloff-(Data.DomOffWom+Data.IntlOffWom))/(totalapp-(Data.DomWom+Data.IntlWom))
 URM=100*(Data.DomOffURM+Data.IntlOffURM)/(Data.DomURM+Data.IntlURM)
+avg=100*totaloff/totalapp
+print('Avg off/app rate: Dom=%3.1f Intl=%3.1f Wom=%3.1f Men=%3.1f URM=%3.1f'%(np.mean(Dom),np.mean(Intl),np.mean(Women),np.mean(Men),np.mean(URM)))
+print('Total rate: ', avg.values)
 plt.plot(Data.Year, Dom, linewidth=2.0, linestyle='-', color='red', marker='o', markersize=5.2)
 plt.plot(Data.Year, Intl,linewidth=2.0, linestyle='-', color='blue', marker='^', markersize=5.2)
 plt.plot(Data.Year, Men,linewidth=2.0, linestyle='-', color='orange',marker='+', markersize=5.2)
 plt.plot(Data.Year, Women, linewidth=2.0, linestyle='-', color='green', marker='>', markersize=5.2)
 plt.plot(Data.Year, URM,linewidth=2.0, linestyle='-', color='black', marker='*', markersize=5.2)
-plt.legend(('USA','Foreign','Men','Women','URM') , loc='upper right', frameon=False,numpoints=1)
+plt.plot(Data.Year, avg, linewidth=2.0, linestyle='--', color='gray')
+plt.legend(('USA','Foreign','Men','Women','URM','All') , loc='upper right', frameon=False,numpoints=1)
 			 #ncol=5, mode='expand', handlelength=1.5, handletextpad=0.20, columnspacing=0.5, borderaxespad=0.1)
 plt.title("Offer rate: offered/applied")
 plt.ylabel("Offer rate %")
@@ -192,6 +199,7 @@ plt.xlim(2004.5,2019.5)
 #ax.set_ylim(ymin,ymax*1.05)
 plt.savefig('Trends07-OfferRateUSFNMenWomURMPerYear.png')
 
+########################################################################
 
 # Plot Offers vs Acceptances in each year, fit to power law
 # The data is clearly non-linear: the first 40 offers yield around 5 accepts, and the last 40 offers yield around 20.
