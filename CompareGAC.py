@@ -1,27 +1,33 @@
+''' Aran Garcia-Bellido (February 2019)
+    This script will compare two (or more) datasets (from two different files, or from the same file)
+    overlaying plots relevant to the GAC process like the GPA score, GRE subject score, the 
+    recommender rankings, the declared interests, the University rankings, and the nationalities. 
+    It is easily expandable to include several datasets or new variables to plot from the spreadsheet.
+'''
 ## Uncomment for Jupyter notebook:
 ## %matplotlib inline 
 import pandas
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-#import scipy.stats as stats
 from Analytics import get_URankCountsDictionary, get_RecLettScore,normalize_GPA
 
-f1=pandas.read_excel('190215_scores_all.xlsx')
-f2=pandas.read_excel('190215_scores_all.xlsx')
-d1=f1
-d2=f2[(f2['STATUS']=='ADMIT')].reset_index(drop = True)
+f1=pandas.read_excel('/home/aran/GAC19/GraduateAdmissions/190215_scores_all.xlsx')
+f2=pandas.read_excel('2020_scores_all.xlsx')
+#d1=f1
+#d2=f1[(f1['Decision Status']=='ADMIT')].reset_index(drop = True)
+d1=f1[(f1['GRE Quantitative']>0)].reset_index(drop = True)
+d2=f2[(f2['GRE Quantitative']>0)].reset_index(drop = True)
 #d4=f2[(f2['Citizenship']=='FN')].reset_index(drop = True)
 #f1=pandas.read_excel('18_data_all.xlsx')
 #f2=pandas.read_excel('190125_data_allapps.xlsx')
-#d1=f1[(f1['Citizenship']=='US') | (f1['Citizenship']=='PR')].reset_index(drop = True)
-#d2=f2[(f2['Citizenship']=='US') | (f2['Citizenship']=='PR')].reset_index(drop = True)
+d1=d1[(d1['Citizenship']=='US') | (d1['Citizenship']=='PR')].reset_index(drop = True)
+d2=d2[(f2['Citizenship']=='US') | (f2['Citizenship']=='PR')].reset_index(drop = True)
 #d3=f1[(f1['Citizenship']=='FN')].reset_index(drop = True)
 #d4=f2[(f2['Citizenship']=='FN')].reset_index(drop = True)
-inputfiles = [d1,d2]
 #datasets=[d1,d2,d3,d4] # hlabels=['2018 US','2019 US', '2018 FN', '2019 FN']
 datasets=[d1,d2]
-hlabels=['Applied','Admitted']
+hlabels=['US 2019','US 2020']
 variables_to_plot = ['Institution 1 GPA Score','GRE Subject Total Score %','GRE Quantitative Percentile','Recommender']
 variables_histp = [[20,2.5,4.0,2],[20,0,100,2],[20,0,100,2],[30,0,30,1]] # the parameters [Nbins, xmin, xmax, legloc] for each histogram/variable
 #hcolors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
@@ -84,7 +90,7 @@ for n,v in enumerate(variables_to_plot):
 #
 fig, ax = plt.subplots(1,figsize=(10, 6))
 #print('Check the two files have the same topic list:')
-for j,d in enumerate(inputfiles):
+for j,d in enumerate(datasets):
 	# Store unique list of student topics (to be used in pie chart)
 	interests=d['App - physics_focus'].dropna()
 	topics = []
@@ -101,7 +107,6 @@ for j,d in enumerate(inputfiles):
 			if not s in topics:
 				topics.append(s)
 	# Now loop through each student entry and count the interests
-	import operator
 	#print(topics)
 	topicCount = dict.fromkeys(sorted(topics),0)
 	for i in interests:
@@ -109,10 +114,15 @@ for j,d in enumerate(inputfiles):
 			if t in i:
 				topicCount[t] += 1
 
-	#print(topicCount)
+	print(topicCount)
 	bar_width = 0.35
 	x = np.arange(len(topics))
 	ax.bar(x+j*bar_width, list(topicCount.values()), bar_width, color=hcolors[j],label=hlabels[j]+' N=%3i'%len(interests))
+	counts=np.array(list(topicCount.values()))
+	# Write the percentage with respect to the total students each year on top of the bar:
+	for idx, c in enumerate(counts):
+		perc='{:2}%'.format(int(c*100/np.sum(counts)))
+		ax.annotate(perc, (x[idx]-bar_width+j*bar_width, c+3) ) 
 
 ax.set_ylim(top=1.2*ax.get_ylim()[1])
 xtitle='Field interests from application form'
@@ -133,10 +143,11 @@ fig.savefig(plotname)
 fig, ax = plt.subplots(1,figsize=(10, 6))
 x=np.arange(4)
 bar_width=0.3
-for j,d in enumerate(inputfiles):
+for j,d in enumerate(datasets):
+	ntot=len(d['Institution 1 Name'].dropna())
 	u_tier_count,u_tier_tot=get_URankCountsDictionary(d['Institution 1 Name'].dropna())
 	print(u_tier_count,u_tier_tot)
-	ax.bar(x+j*bar_width, u_tier_count.values(), bar_width, color=hcolors[j], label=hlabels[j])
+	ax.bar(x+j*bar_width, u_tier_count.values(), bar_width, color=hcolors[j], label=hlabels[j]+' N=%3i'%ntot)
 
 ax.set_xlabel('Carnegie Classification of University of applicant, as of 2018',size = 16)
 ax.set_ylabel('Students',size = 16)
@@ -157,9 +168,9 @@ plt.savefig(plotname)
 fig, ax = plt.subplots(1,figsize=(10, 6))
 fig.subplots_adjust(bottom=0.2) # make room for big country names
 bothnames=[]
-for j,d in enumerate(inputfiles):
+for j,d in enumerate(datasets):
 	natcount=d.groupby('Citizenship1').Citizenship1.count() # counts for each unique country
-	bignatcount=natcount[natcount>4]
+	bignatcount=natcount[natcount>4] # only include countries with more than 4 students
 	#print(type(bignatcount))
 	names=[x for x,v in bignatcount.items()]
 	bothnames+=names
@@ -167,8 +178,10 @@ for j,d in enumerate(inputfiles):
 natnames=sorted(list(set(bothnames)))
 x=np.arange(len(natnames))
 bar_width=0.4
-# Ok, now we can go back and count the entries:
-for j,d in enumerate(inputfiles):
+# Ok, now we have the country names, we can go back and count the entries:
+for j,d in enumerate(datasets):
+	n_us=len(d[(d['Citizenship']=='US') | (d['Citizenship']=='PR')]['Citizenship'].dropna())
+	n_fn=len(d[(d['Citizenship']=='FN')]['Citizenship'].dropna())
 	natcount=d.groupby('Citizenship1').Citizenship1.count() # counts for each unique country
 	y=[]
 	for nat in natnames:
@@ -177,7 +190,7 @@ for j,d in enumerate(inputfiles):
 		else:
 			y.append(0)
 	print(dict(zip(natnames, y)))
-	ax.bar(x+j*bar_width, y, bar_width, color=hcolors[j], label=hlabels[j])
+	ax.bar(x+j*bar_width, y, bar_width, color=hcolors[j], label=hlabels[j]+' US=%3i FN=%3i'%(n_us,n_fn))
 	
 #ax.set_xlabel('',size = 16)
 ax.set_ylabel('Students',size = 16)
