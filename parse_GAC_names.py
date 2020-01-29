@@ -5,15 +5,15 @@ import os
 # This script will grep each pdf file, print out each match with context, and add the counter which is saved as a two column file in StudentFacnames.csv
 # Since many names are ambiguous, this process needs to be corrected manually on a second run. For example, John Nichol matches "Nichol" as Bigelow, and Adam Frank, matches Frank Wolfs, etc.... 
 
-# This needs to be run in the same folder as gac_dir where all the pdfs are. 
-gac_dir='/work/GAC19/PS2019ALL' # Remember to include the / at the end
+# This needs to be run in the same folder as gac_dir where all the pdfs are: python ../GraduateAdmissions/parse_GAC_names.py > log
+gac_dir='/home/aran/GAC20/ALLPS' 
 
 #Download faculty page:
 #wget http://www.pas.rochester.edu/people/faculty/index.html
 #sed 's/\/h4/\/h4\n/g ; s/a href=/\n/g' index.html  | /bin/grep "\/h4" | sed 's/.*\">\(.*\)\,.*/\1/' | tr '\n' ',' | sed 's/\,/\"\,\"/g' 
 # First, adds newlines in every /h4 and "a href=" matches, then grep those lines only with /h4, and finally, remove everything outside of > and , (after the comma comes the first names). So this leaves us with only surnames. Then change the \n to a comma, and add the quotes so that we can make a list.
 
-fac_names=["Agrawal","BenZvi","Bergstralh","Betti","Bigelow","Blackman","Bocko","Bodek","Boyd","Cline","Collins","Das","Demina","Dery","Dias","Douglass","Duke","Eberly","Ferbel","Forrest","Foster","Franco","Frank","Froula","Gao","Bellido","Ghoshal","Gourdain","Guo","Haefner","Hagen","Helfer","Howell","Jordan","Knight","Knox","Knox","Mamajek","Manly","McCrory","McFarland","Melissinos","Milonni","Murray","Nakajima","Nichol","Oakes","Orr","Pipher","Quillen","Rajeev","Ren","Rothberg","Rygg","Savedoff","Schroeder","Sefkow","Seyler","Shapir","Slattery","Sobolewski","Stroud","Tarduno","Teitel","Thorndike","Vamivakas","Van Horn","Visser","Watson","Wolfs","Wu","Zhang","Zhong"]
+fac_names=["Agrawal","BenZvi","Bergstralh","Betti","Bigelow","Blackman","Blok","Bocko","Bodek","Boyd","Cardenas","Cline","Collins","Das","Demina","Dery","Dias","Douglass","Eberly","Ferbel","Forrest","Foster","Franco","Frank","Froula","Gao","Bellido","Ghoshal","Gourdain","Guo","Haefner","Hagen","Helfer","Howell","Jordan","Knight","Knox","Mamajek","Manly","McCrory","McFarland","Melissinos","Milonni","Murray","Nakajima","Nichol","Oakes","Orr","Pipher","Quillen","Rajeev","Ren","Rothberg","Rygg","Savedoff","Schroeder","Sefkow","Seyler","Shapir","Slattery","Sobolewski","Stroud","Tarduno","Teitel","Thomas","Thorndike","Vamivakas","Van Horn","Visser","Watson","Wolfs","Wu","Zhang","Zhong"]
 
 fac_names = sorted(set(fac_names)) # remove duplicates and keep alphabetical order. We had Douglass twice.
 
@@ -28,7 +28,7 @@ student_foundfac={}
 os.system('rm -f ' + gac_dir + '/*.txt')
 for filename in sorted(os.listdir(gac_dir)): # order the pdf files alphabetically
     if filename.endswith(".pdf"):
-    #if "372331516" in filename:
+    #if "920823152" in filename:
         print(os.path.join(gac_dir, filename))
         student_name=filename.split(" (")[0].strip() # just remove the App# and extension from the filename 
         foundfac=''
@@ -38,7 +38,7 @@ for filename in sorted(os.listdir(gac_dir)): # order the pdf files alphabeticall
         for fac in fac_names:
 			grep_cmd = '/bin/grep \"' + fac + '\" \"' + filename_txt + '\"'
 			grep_result = os.popen(grep_cmd).read()
-			if (fac == 'Nichol' and ('Nicholas' in grep_result)) or (fac == 'Frank' and ('Wolfs' in grep_result)) or (fac in student_name):
+			if (fac == 'Nichol' and ('Nicholas' in grep_result)) or (fac == 'Frank' and ('Wolfs' in grep_result)) or (fac == 'Wu' and ('Wuhan' in grep_result)) or (fac in student_name):
 			    continue
 			if not grep_result == "": 
 				print(grep_cmd)
@@ -60,26 +60,28 @@ with open('StudentFacnames.csv', 'wb') as csvfile:
 print("Wrote file StudentFacnames.csv with two rows: StudentName FoundFacultyNames")
 
 # We can correct here wrong entries (once we have inspected the output of grep and see any errors):
-# Corrections for GAC19 folder
-# fac_count['Frank']-=12
-# fac_count['Ren']-=7
-# fac_count['Nichol']-=23
+# Corrections for GAC20 folder
+fac_count['Frank']-=9
+fac_count['Ren']-=10
+fac_count['Nichol']+=1
 # fac_count['Franco']-=1
 # fac_count['Guo']-=4
-# fac_count['Zhang']-=8
+fac_count['Zhang']-=7
 # fac_count['Jordan']-=2
 # fac_count['Watson']-=1
-# fac_count['Duke']-=2
-# fac_count['Wu']-=-7
-# fac_count['Das']-=2
-# fac_count['Zhong']-=2
+#fac_count['Duke']-=4
+fac_count['Wu']-=5
+fac_count['Das']-=4
+fac_count['Zhong']-=2
 # fac_count['BenZvi']+=1
 # fac_count['McFarland']+=1
-# fac_count['Gao']-=2
+fac_count['Gao']+=1
+fac_count['Murray']-=2
 # fac_count['Douglass']-=4
-# fac_count['Rajeev']-=1
-# fac_count['Orr']-=-1
-# fac_count['Schroeder']-=1
+fac_count['Rajeev']-=1
+fac_count['Knox']-=1
+fac_count['Schroeder']-=1
+fac_count['Knight']-=2
 # fac_count['Hagen']-=1
 # fac_count['Foster']-=1
 # fac_count['Boyd']-=1

@@ -19,8 +19,8 @@ idx = 5 + 10*np.arange(len(names))
 
 plt.bar(idx, count, width=5, align='center', fc='royalblue')
 plt.xticks(idx, names)
-plt.ylabel('count')
-plt.title('Interest by Personal Statement')
+plt.ylabel('Count')
+plt.title('Faculty mentioned in Personal Statement')
 plt.xlim(1,idx[-1]+4)
 plt.xticks(rotation=80)
 fig.tight_layout()
@@ -30,8 +30,14 @@ fig.savefig('faculty_names_histo.png')
 # ## Faculty Interest Word Cloud
 # This is eye candy which is kind of fun to show at faculty meetings. In 2017 I wanted to show the key areas of interest (mainly LLE + various QO faculty).
 from wordcloud import WordCloud, STOPWORDS
-
+     
 fac_count_dict = dict(zip(names, count))
+''' Trick to be able to color each entry based on its frequency:
+https://github.com/amueller/word_cloud/issues/88
+'''
+def my_tf_color_func(word, **kwargs):
+     return "hsl(%d, 80%%, 50%%)" % (360 * fac_count_dict[word])
+     
 wordcloud = WordCloud(stopwords=STOPWORDS,
                       background_color='black',
                       width=1200,
@@ -39,6 +45,7 @@ wordcloud = WordCloud(stopwords=STOPWORDS,
                       prefer_horizontal=0.8,
                       relative_scaling=1.,
                       max_font_size=300,
+#                      color_func=my_tf_color_func,
                       ).generate_from_frequencies(fac_count_dict)
 
 fig, ax = plt.subplots(1,1, figsize=(12,10))
