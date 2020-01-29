@@ -5,25 +5,33 @@ import pandas
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+# Can use the 'Institution 1 Location' to select "domestic" (US and FN) students: 
+US_states = ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DC", "DE", "FL", "GA", 
+          "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", 
+          "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", 
+          "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", 
+          "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"]
 
 mpl.rc('font', family='sans-serif', size=16)
 
-apps = pandas.read_excel('190215_scores_all.xlsx')
+#apps = pandas.read_excel('190215_scores_all.xlsx')
 #apps = pandas.read_excel('../../GAC18/180213_data_100.xlsx')
-#apps = pandas.read_excel('18_data_all.xlsx')
+apps = pandas.read_excel('2020_scores_all.xlsx')
 #apps = pandas.read_excel('190125_data_allapps.xlsx')
 # 
 ## Uncomment to view the entire input table.
 # apps
 # Make cuts:
 #apps = apps[apps['New Rank']<76].reset_index(drop = True)
-apps = apps[apps['STATUS']=="ADMIT"].reset_index(drop = True)
+#apps = apps[apps['STATUS']=="ADMIT"].reset_index(drop = True)
 #apps=apps[apps['GRE Subject Total Score %']>0].reset_index(drop = True)
+#apps=apps[(apps['Institution 1 GPA Score']>0)].reset_index(drop = True)
+#apps=apps[(apps['GRE Quantitative']>0)].reset_index(drop = True)
+#apps=apps.dropna(subset=['Recommender 1 Rating','Recommender 2 Rating','Recommender 3 Rating'])
 #apps=apps[(apps['Citizenship']=='US') | (apps['Citizenship']=='PR')].reset_index(drop = True)
 #apps=apps[(apps['Citizenship']=='FN')].reset_index(drop = True)
-# # GPA and GRE Breakdowns
-# 
-# ### Total Scores
+#apps=apps[apps['Institution 1 Location'].isin(US_states)].reset_index(drop = True)
+
 
 def normalize_GPA(gpas):
 	''' Normalize GPA to a top score of 4.0'''
@@ -86,16 +94,17 @@ def get_URankCountsDictionary(ulist):
     unames = pandas.read_csv('UniversitiesbyResearchTier.csv',names=['R1','R2','R3','Top100LiberalArts'])
     # Remove things in the names that could derail a proper match:
     fix_names={'-':' ', ',':'', 'at ':'', 'At ':'', 'of ':'', 'Of ':'', 'the ':'', 'The ':'', 'and ':'', 'And ':'', \
-    "'s":"s", 'In ':'', 'SUNY':'Suny', 'CUNY':'Cuny', ' Main Campus':'', 'Endowed Colleges':''}
+    "'s":"s", 'In ':'', 'SUNY':'Suny', 'CUNY':'Cuny', ' Main Campus':'', ' Endowed Colleges':''}
     for k,v in fix_names.items():
         ulist=ulist.str.replace(k,v) # the str.replace acts over a Series replacing a substring inside a string.
         for c in unames.columns:     # the df.replace only works for whole entries, not substrigs! 
             unames[c]=unames[c].str.replace(k,v)
+
     u_tier_count={'R1': 0, 'R2': 0, 'R3': 0, 'Top100LiberalArts': 0} # create dictionary
-    u_tier_count['R1']=sum(unames['R1'].isin(ulist)) # isin() returns a boolean list of any ulist which appears in unames['R1']
-    u_tier_count['R2']=sum(unames['R2'].isin(ulist)) # sum() just counts how many are True.
-    u_tier_count['R3']=sum(unames['R3'].isin(ulist))
-    u_tier_count['Top100LiberalArts']=sum(unames['Top100LiberalArts'].isin(ulist))
+    u_tier_count['R1']=sum(ulist.isin(unames['R1'])) # isin() returns a boolean list of any ulist which appears in unames['R1']
+    u_tier_count['R2']=sum(ulist.isin(unames['R2'])) # sum() just counts how many are True.
+    u_tier_count['R3']=sum(ulist.isin(unames['R3']))
+    u_tier_count['Top100LiberalArts']=sum(ulist.isin(unames['Top100LiberalArts']))
     u_tier_tot={'R1': len(unames['R1'].dropna()), 
                 'R2': len(unames['R2'].dropna()),
                 'R3': len(unames['R3'].dropna()),
@@ -104,9 +113,9 @@ def get_URankCountsDictionary(ulist):
 
 def main():
     gres=apps['GRE Subject Total Score %'].fillna(-10.)
-    gpas=apps['Institution 1 GPA Score'].fillna(-10.)
-    
-    apps['Normalized GPA'] = normalize_GPA(gpas)
+    #gpas=apps['Institution 1 GPA Score'].fillna(-10.) #Institution 1 GPA (4.0 Scale) ; Institution 1 GPA Score
+    # Now we have the properly normalized right in the spreadsheet:
+    apps['Normalized GPA'] = apps['Institution 1 GPA (4.0 Scale)'].fillna(-10.) #normalize_GPA(gpas)
     # definitions for the axes
     left, width = 0.1, 0.65
     bottom, height = 0.1, 0.65
@@ -128,7 +137,7 @@ def main():
     # 
     axScatter.scatter(gres, apps['Normalized GPA'])
     axScatter.set_xlabel("GRE Subject Total Score %")
-    axScatter.set_ylabel("Undergrad GPA")
+    axScatter.set_ylabel("Undergrad GPA (4.0 Scale)")
     
     # now determine nice limits by hand:
     binwidth = 0.2
@@ -140,7 +149,7 @@ def main():
     
     axHistx.hist(gres.dropna(), bins=np.arange(0, lim + 10, 10))
     axHistx.axes.xaxis.set_ticklabels([]) # remove x axis labels on top plot
-    axHisty.hist(gpas.dropna(), bins=np.arange(0, lim + 0.2, 0.2), orientation='horizontal')
+    axHisty.hist(apps['Normalized GPA'].dropna(), bins=np.arange(0, lim + 0.2, 0.2), orientation='horizontal')
     axHisty.axes.yaxis.set_ticklabels([]) # remove y axis labels on right plot
     axHistx.set_xlim(axScatter.get_xlim())
     axHisty.set_ylim(axScatter.get_ylim())
@@ -169,7 +178,7 @@ def main():
     	ax.annotate(txt, (gres[i],gpas[i]), size='x-small')
     
     plt.xlabel("GRE Subject Total Score %")
-    plt.ylabel("Undergrad GPA")
+    plt.ylabel("Undergrad GPA (4.0 Scale)")
     plt.ylim(3.3,4.02)
     plt.xlim(20,100)
     plt.tight_layout()
@@ -204,14 +213,20 @@ def main():
     #
     Nwomen=len(apps[apps.Sex=='F']['URM'])
     NURM=len(apps[apps.URM=='Yes']['URM'])
+    Nhisp=len(apps[apps.Hispanic=='Y']['URM'])
     Ntot=len(apps['URM'])
-    print('Women: %3i/%-3i=%3.1f%%'%(Nwomen,Ntot,float(Nwomen)/float(Ntot)*100.))
-    print('  URM: %3i/%-3i=%3.1f%%'%(NURM,Ntot,float(NURM)/float(Ntot)*100.))
+    print('Women:    %3i/%-3i=%3.1f%%'%(Nwomen,Ntot,float(Nwomen)/float(Ntot)*100.))
+    print('URM:      %3i/%-3i=%3.1f%%'%(NURM,Ntot,float(NURM)/float(Ntot)*100.))
+    print('Hispanic: %3i/%-3i=%3.1f%%'%(Nhisp,Ntot,float(Nhisp)/float(Ntot)*100.))
     print(pandas.crosstab(apps.Citizenship1,apps.Sex,margins=True))
     us=len(apps[(apps['Citizenship']=='US') | (apps['Citizenship']=='PR')])
-    fn=len(apps[(apps['Citizenship']=='FN')]) 
+    fn=len(apps[apps['Citizenship']=='FN'])
     print('\nUS: %3i/%-3i=%3.1f%%'%(us,us+fn,float(us)/float(us+fn)*100.))
     print('FN: %3i/%-3i=%3.1f%%'%(fn,us+fn,float(fn)/float(us+fn)*100.))
+    dom=len(apps[apps['Institution 1 Location'].isin(US_states)])
+    fn_in_dom=len(apps[(apps['Institution 1 Location'].isin(US_states)) & (apps['Citizenship']=='FN')])
+    print('From domestic institutions: %3i/%-3i=%3.1f%%'%(dom,Ntot,float(dom)/float(Ntot)*100.))
+    print('FN in domestic institutions: %3i/%-3i=%3.1f%%'%(fn_in_dom,dom,float(fn_in_dom)/float(dom)*100.))
     print('\nAverage TOEFL score: %4.1f'%np.mean(apps['TOEFL Total']))
     #
     # Breakdown by Gender
@@ -362,7 +377,7 @@ def main():
     # ### Box/Whisker Plots of GPA and GRE, by Interest
     # 
     # #### The box extends from the lower to upper quartile values of the data, with a yellow line at the median. The whisker values of whis=[2.5, 97.5] 
-    print('Box = Top 25%, Tips = (2.5%,97.5%)')
+    print('Yellow line=median, Box = Top 25%, Tips = (2.5%,97.5%)')
     fig, ax = plt.subplots(1,1, figsize=(8,5))
     ax.boxplot(infoByTopic(apps, 'Normalized GPA', topicSorted, whichint), 0, whis=[2.5, 97.5], sym='')
     ax.set_xticklabels(topicSorted[:,0], rotation=45)
@@ -387,6 +402,7 @@ def main():
     ax.set(title='GRE Quantitative Percentile',
            ylabel='percentile',
            ylim=(0,100))
+    ax.text(0.8,2.8,"Yellow line=median; Box=(25-75)%; Tips=(2.5-97.5)%",color='gray')
     fig.tight_layout()
     fig.savefig("07GAC-GREQuantitativePercentile.png")
     
@@ -438,7 +454,7 @@ def main():
     x=np.arange(4)
     bar_width=0.4
     ax.bar(x, u_tier_count.values(), bar_width, color='b')
-    ax.set_xlabel('Carnegie Classification of University of applicant, as of 2018',size = 16)
+    ax.set_xlabel('Carnegie Classification of University of applicant, as of 2019',size = 16)
     ax.set_ylabel('Students',size = 16)
     ax.set_title('Top Liberal Arts colleges from Times Higher Education',size = 18)
     ax.text(0.4,0.95,"R1: Doctoral Highest Research [N=%3i]"%u_tier_tot['R1'],transform=ax.transAxes)
@@ -447,6 +463,38 @@ def main():
     ax.set_xticks(x)
     ax.set_xticklabels(u_tier_count.keys())
     plt.savefig("11GAC-UniversityResearchTier.png")
-
+    #
+    # US states of Institution 1
+    #
+    plt.figure() # New figure
+    CollStates=apps[apps['Institution 1 Location'].isin(US_states)]['Institution 1 Location']
+    # Bar or pie plot:
+    pandas.Series(CollStates).value_counts().plot('pie')
+    #print(list(pandas.Series(CollStates).value_counts().keys()))
+    #print(pandas.Series(CollStates).value_counts().values)
+    plt.savefig("12GAC-USStateInstitution1.png")
+    # Heat map of US:
+    #sudo -H pip3 install plotly-geo geopandas pyshp shapely
+    # import plotly.graph_objects as go    
+    # fig = go.Figure(data=go.Choropleth(
+        # locations=list(pandas.Series(CollStates).value_counts().keys()), 
+        # z=list(pandas.Series(CollStates).value_counts().values), 
+        # locationmode = 'USA-states',
+        # colorscale = 'Reds', colorbar_title = "Students"))
+    # fig.update_layout(title_text = 'US state of Institution 1',
+        # geo_scope='usa')
+    #fig.show() # this will open plot in existing browser session
+    
+    #
+    # Principal Language Spoken at Home
+    #
+    # This is a dictionary with the languages in two-letter abbreviation:
+    # https://gist.githubusercontent.com/carlopires/1262033/raw/1a2d842c7ed2f54502ae5a774d0d2b4df49fcf3c/ISO639_2.py
+    plt.figure() # New figure
+    lang=apps['Principal Language Spoken at Home']
+    # Bar or pie plot:
+    pandas.Series(lang).value_counts().plot('bar')
+    plt.savefig("13GAC-LanguageAtHome.png")
+    
 if __name__ == "__main__":
     main()
