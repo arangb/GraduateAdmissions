@@ -3,7 +3,6 @@
 ## %matplotlib inline 
 import pandas
 import numpy as np
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 # Can use the 'Institution 1 Location' to select "domestic" (US and FN) students: 
 US_states = ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DC", "DE", "FL", "GA", 
@@ -12,7 +11,7 @@ US_states = ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DC", "DE", "FL", "GA",
           "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", 
           "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"]
 
-mpl.rc('font', family='sans-serif', size=16)
+plt.rc('font', family='sans-serif', size=16)
 
 #apps = pandas.read_excel('190215_scores_all.xlsx')
 #apps = pandas.read_excel('../../GAC18/180213_data_100.xlsx')
@@ -30,7 +29,7 @@ apps = pandas.read_excel('2020_scores_all.xlsx')
 #apps=apps.dropna(subset=['Recommender 1 Rating','Recommender 2 Rating','Recommender 3 Rating'])
 #apps=apps[(apps['Citizenship']=='US') | (apps['Citizenship']=='PR')].reset_index(drop = True)
 #apps=apps[(apps['Citizenship']=='FN')].reset_index(drop = True)
-#apps=apps[apps['Institution 1 Location'].isin(US_states)].reset_index(drop = True)
+apps=apps[apps['Institution 1 Location'].isin(US_states)].reset_index(drop = True)
 
 
 def normalize_GPA(gpas):
@@ -101,7 +100,7 @@ def get_URankCountsDictionary(ulist):
             unames[c]=unames[c].str.replace(k,v)
 
     u_tier_count={'R1': 0, 'R2': 0, 'R3': 0, 'Top100LiberalArts': 0} # create dictionary
-    u_tier_count['R1']=sum(ulist.isin(unames['R1'])) # isin() returns a boolean list of any ulist which appears in unames['R1']
+    u_tier_count['R1']=sum(ulist.isin(unames['R1'])) # isin() returns a boolean list of all ulist which appear in unames['R1']
     u_tier_count['R2']=sum(ulist.isin(unames['R2'])) # sum() just counts how many are True.
     u_tier_count['R3']=sum(ulist.isin(unames['R3']))
     u_tier_count['Top100LiberalArts']=sum(ulist.isin(unames['Top100LiberalArts']))
@@ -181,7 +180,6 @@ def main():
     plt.ylabel("Undergrad GPA (4.0 Scale)")
     plt.ylim(3.3,4.02)
     plt.xlim(20,100)
-    plt.tight_layout()
     plt.savefig('00GAC-GPAGREcorr-scatter.png')
     #
     # GRE breakdown
@@ -454,12 +452,16 @@ def main():
     x=np.arange(4)
     bar_width=0.4
     ax.bar(x, u_tier_count.values(), bar_width, color='b')
+    for idx, c in enumerate(u_tier_count.values()):
+        perc='{:2}%'.format(int(c*100/dom)) # dom is calculated as: len(apps[apps['Institution 1 Location'].isin(US_states)])
+        ax.annotate(perc, (x[idx]-0.1, c+2) , color='green') 
     ax.set_xlabel('Carnegie Classification of University of applicant, as of 2019',size = 16)
     ax.set_ylabel('Students',size = 16)
     ax.set_title('Top Liberal Arts colleges from Times Higher Education',size = 18)
-    ax.text(0.4,0.95,"R1: Doctoral Highest Research [N=%3i]"%u_tier_tot['R1'],transform=ax.transAxes)
-    ax.text(0.4,0.9,"R2: Doctoral Higher Research [N=%3i]"%u_tier_tot['R2'],transform=ax.transAxes)
-    ax.text(0.4,0.85,"R3: Doctoral Moderate Research [N=%3i]"%u_tier_tot['R3'],transform=ax.transAxes)
+    ax.text(0.38,0.95,"R1: Doctoral Highest Research [N=%3i]"%u_tier_tot['R1'],transform=ax.transAxes)
+    ax.text(0.38,0.9,"R2: Doctoral Higher Research [N=%3i]"%u_tier_tot['R2'],transform=ax.transAxes)
+    ax.text(0.38,0.85,"R3: Doctoral Moderate Research [N=%3i]"%u_tier_tot['R3'],transform=ax.transAxes)
+    ax.text(0.38,0.8,"%% of students in US institutions [N=%3i]"%dom, color='green',transform=ax.transAxes)
     ax.set_xticks(x)
     ax.set_xticklabels(u_tier_count.keys())
     plt.savefig("11GAC-UniversityResearchTier.png")
