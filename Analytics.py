@@ -15,7 +15,8 @@ plt.rc('font', family='sans-serif', size=16)
 
 #apps = pandas.read_excel('190215_scores_all.xlsx')
 #apps = pandas.read_excel('../../GAC18/180213_data_100.xlsx')
-apps = pandas.read_excel('2020_scores_all.xlsx')
+#apps = pandas.read_excel('2020_scores_all.xlsx')
+apps = pandas.read_excel('2020_all_applicants_data.xlsx')
 #apps = pandas.read_excel('190125_data_allapps.xlsx')
 # 
 ## Uncomment to view the entire input table.
@@ -29,7 +30,7 @@ apps = pandas.read_excel('2020_scores_all.xlsx')
 #apps=apps.dropna(subset=['Recommender 1 Rating','Recommender 2 Rating','Recommender 3 Rating'])
 #apps=apps[(apps['Citizenship']=='US') | (apps['Citizenship']=='PR')].reset_index(drop = True)
 #apps=apps[(apps['Citizenship']=='FN')].reset_index(drop = True)
-apps=apps[apps['Institution 1 Location'].isin(US_states)].reset_index(drop = True)
+#apps=apps[apps['Institution 1 Location'].isin(US_states)].reset_index(drop = True)
 
 
 def normalize_GPA(gpas):

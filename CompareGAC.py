@@ -13,21 +13,22 @@ import matplotlib.pyplot as plt
 from Analytics import get_URankCountsDictionary, get_RecLettScore,normalize_GPA
 
 f1=pandas.read_excel('/home/aran/GAC19/GraduateAdmissions/190215_scores_all.xlsx')
-f2=pandas.read_excel('2020_scores_all.xlsx')
-#d1=f1
+f2=pandas.read_excel('2020_all_applicants_data.xlsx')
+d1=f1
+d2=f2
 #d2=f1[(f1['Decision Status']=='ADMIT')].reset_index(drop = True)
-d1=f1[(f1['GRE Quantitative']>0)].reset_index(drop = True)
-d2=f2[(f2['GRE Quantitative']>0)].reset_index(drop = True)
+#d1=f1[(f1['GRE Quantitative']>0)].reset_index(drop = True)
+#d2=f2[(f2['GRE Quantitative']>0)].reset_index(drop = True)
 #d4=f2[(f2['Citizenship']=='FN')].reset_index(drop = True)
 #f1=pandas.read_excel('18_data_all.xlsx')
 #f2=pandas.read_excel('190125_data_allapps.xlsx')
-d1=d1[(d1['Citizenship']=='US') | (d1['Citizenship']=='PR')].reset_index(drop = True)
-d2=d2[(f2['Citizenship']=='US') | (f2['Citizenship']=='PR')].reset_index(drop = True)
+#d1=d1[(d1['Citizenship']=='US') | (d1['Citizenship']=='PR')].reset_index(drop = True)
+#d2=d2[(f2['Citizenship']=='US') | (f2['Citizenship']=='PR')].reset_index(drop = True)
 #d3=f1[(f1['Citizenship']=='FN')].reset_index(drop = True)
 #d4=f2[(f2['Citizenship']=='FN')].reset_index(drop = True)
 #datasets=[d1,d2,d3,d4] # hlabels=['2018 US','2019 US', '2018 FN', '2019 FN']
 datasets=[d1,d2]
-hlabels=['US 2019','US 2020']
+hlabels=['2019','2020']
 variables_to_plot = ['Institution 1 GPA Score','GRE Subject Total Score %','GRE Quantitative Percentile','Recommender']
 variables_histp = [[20,2.5,4.0,2],[20,0,100,2],[20,0,100,2],[30,0,30,1]] # the parameters [Nbins, xmin, xmax, legloc] for each histogram/variable
 #hcolors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
@@ -122,7 +123,7 @@ for j,d in enumerate(datasets):
 	# Write the percentage with respect to the total students each year on top of the bar:
 	for idx, c in enumerate(counts):
 		perc='{:2}%'.format(int(c*100/np.sum(counts)))
-		ax.annotate(perc, (x[idx]-bar_width+j*bar_width, c+3) ) 
+		ax.annotate(perc, (x[idx]-0.8*bar_width+j*1.3*bar_width, c+3), fontsize=12 ) 
 
 ax.set_ylim(top=1.2*ax.get_ylim()[1])
 xtitle='Field interests from application form'
@@ -149,7 +150,7 @@ for j,d in enumerate(datasets):
 	print(u_tier_count,u_tier_tot)
 	ax.bar(x+j*bar_width, u_tier_count.values(), bar_width, color=hcolors[j], label=hlabels[j]+' N=%3i'%ntot)
 
-ax.set_xlabel('Carnegie Classification of University of applicant, as of 2018',size = 16)
+ax.set_xlabel('Carnegie Classification of University of applicant, as of 2019',size = 16)
 ax.set_ylabel('Students',size = 16)
 ax.set_title('Top Liberal Arts colleges from Times Higher Education',size = 18)
 ax.text(0.4,0.95,"R1: Doctoral Highest Research [N=%3i]"%u_tier_tot['R1'],transform=ax.transAxes)
