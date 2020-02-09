@@ -10,7 +10,7 @@ import pandas
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from Analytics import get_URankCountsDictionary, get_RecLettScore, normalize_GPA
+from Analytics import get_UniversityRank, get_RecLettScore, normalize_GPA
 
 f1=pandas.read_excel('/home/aran/GAC19/GraduateAdmissions/190215_scores_all.xlsx')
 f2=pandas.read_excel('2020_scores_all_200204.xlsx')
@@ -148,18 +148,20 @@ x=np.arange(4)
 bar_width=0.3
 for j,d in enumerate(datasets):
 	ntot=len(d['Institution 1 Name'].dropna())
-	u_tier_count,u_tier_tot=get_URankCountsDictionary(d['Institution 1 Name'].dropna())
-	print(u_tier_count,u_tier_tot)
-	ax.bar(x+j*bar_width, u_tier_count.values(), bar_width, color=hcolors[j], label=hlabels[j]+' N=%3i'%ntot)
+	# Create new column with the classification of each university:
+	d['URank']=get_UniversityRank(d['Institution 1 Name']) # returns a list with the rank value
+	u_tier_count=d['URank'].value_counts().to_dict()
+	values=[u_tier_count[k] for k in sorted(u_tier_count)] # ordered alphabetically by key
+	ax.bar(x+j*bar_width, values, bar_width, color=hcolors[j], label=hlabels[j]+' N=%3i'%ntot)
 
 ax.set_xlabel('Carnegie Classification of University of applicant, as of 2019',size = 16)
 ax.set_ylabel('Students',size = 16)
 ax.set_title('Top Liberal Arts colleges from Times Higher Education',size = 18)
-ax.text(0.4,0.95,"R1: Doctoral Highest Research [N=%3i]"%u_tier_tot['R1'],transform=ax.transAxes)
-ax.text(0.4,0.9,"R2: Doctoral Higher Research [N=%3i]"%u_tier_tot['R2'],transform=ax.transAxes)
-ax.text(0.4,0.85,"R3: Doctoral Moderate Research [N=%3i]"%u_tier_tot['R3'],transform=ax.transAxes)
+ax.text(0.5,0.95,"R1: Doctoral Highest Research",transform=ax.transAxes)
+ax.text(0.5,0.9,"R2: Doctoral Higher Research",transform=ax.transAxes)
+ax.text(0.5,0.85,"R3: Doctoral Moderate Research",transform=ax.transAxes)
 ax.set_xticks(x + bar_width / 2)
-ax.set_xticklabels(u_tier_count.keys())
+ax.set_xticklabels([k for k in sorted(u_tier_count)])
 ax.set_ylim(top=1.2*ax.get_ylim()[1])
 ax.legend(loc=2)
 ax.grid()

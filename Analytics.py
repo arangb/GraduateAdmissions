@@ -86,31 +86,33 @@ def get_RecLettScore(letters):
 
 # Top 100 liberal arts colleges by the Times Higher Education: https://www.timeshighereducation.com/student/best-universities/best-liberal-arts-colleges-united-states
 # Doctoral Research Universities: https://en.wikipedia.org/wiki/List_of_research_universities_in_the_United_States
-def get_URankCountsDictionary(ulist):
-    '''Input ulist: a dataframe/series with the name of the university for each student 
-    We will read the current UniversitiesbyResearchTier.csv which contains a list of the research tiers and 100 Top liberal Arts colleges in the US
-    and will count how many universities fall in each category'''
+def get_UniversityRank(ulist):
+    ''' Input ulist: a dataframe/series wit the names of Universities. Each row is a a student. 
+    We will look up the UniversitiesbyResearchTier.csv  file and return 
+    a list for every row in ulist with "R1", "R2", "R3", "TopLA" 
+    depending on the rank, or "" if it is not on the csv file.
+    You can then easily create a new column based on this ranking for each row: 
+    df['URank']=get_UniversityRank(df['Institution 1 Name'])  '''
     # Read lists of universities:
     unames = pandas.read_csv('UniversitiesbyResearchTier.csv',names=['R1','R2','R3','Top100LiberalArts'])
     # Remove things in the names that could derail a proper match:
     fix_names={'-':' ', ',':'', 'at ':'', 'At ':'', 'of ':'', 'Of ':'', 'the ':'', 'The ':'', 'and ':'', 'And ':'', \
     "'s":"s", 'In ':'', 'SUNY':'Suny', 'CUNY':'Cuny', ' Main Campus':'', ' Endowed Colleges':''}
+    # Clean up both lists:
     for k,v in fix_names.items():
         ulist=ulist.str.replace(k,v) # the str.replace acts over a Series replacing a substring inside a string.
-        for c in unames.columns:     # the df.replace only works for whole entries, not substrigs! 
+        for c in unames.columns:
             unames[c]=unames[c].str.replace(k,v)
-
-    u_tier_count={'R1': 0, 'R2': 0, 'R3': 0, 'Top100LiberalArts': 0} # create dictionary
-    u_tier_count['R1']=sum(ulist.isin(unames['R1'])) # isin() returns a boolean list of all ulist which appear in unames['R1']
-    u_tier_count['R2']=sum(ulist.isin(unames['R2'])) # sum() just counts how many are True.
-    u_tier_count['R3']=sum(ulist.isin(unames['R3']))
-    u_tier_count['Top100LiberalArts']=sum(ulist.isin(unames['Top100LiberalArts']))
-    u_tier_tot={'R1': len(unames['R1'].dropna()), 
-                'R2': len(unames['R2'].dropna()),
-                'R3': len(unames['R3'].dropna()),
-                'Top100LiberalArts': 100}
-    return u_tier_count,u_tier_tot
-
+    urank=[] # list to store the rank
+    for u in ulist:
+        found=None
+        for c in unames.columns:
+            if u in unames[c].values:
+                found = c
+        urank.append(found)
+    #urank=[x.replace('Top100LiberalArts', 'TopLA') for x in urank] 
+    return urank
+        
 def main():
     gres=apps['GRE Subject Total Score %'].fillna(-10.)
     #gpas=apps['Institution 1 GPA Score'].fillna(-10.) #Institution 1 GPA (4.0 Scale) ; Institution 1 GPA Score
@@ -448,12 +450,21 @@ def main():
     #
     plt.figure() # New figure
     fig, ax = plt.subplots(figsize=(10, 10))
-    u_tier_count,u_tier_tot=get_URankCountsDictionary(apps['Institution 1 Name'])
+    # Create a new column with the classification for each University:
+    apps['URank']=get_UniversityRank(apps['Institution 1 Name']) # returns a list with the rank value
+    u_tier_count=apps['URank'].value_counts().to_dict() # This returns something like: {'R1': 117, 'R2': 21, 'Top100LiberalArts': 18, 'R3': 8}
+    # Count how many entries make up each category in the original file:
+    unames = pandas.read_csv('UniversitiesbyResearchTier.csv',names=['R1','R2','R3','Top100LiberalArts'])
+    u_tier_tot={'R1': len(unames['R1'].dropna()), # total counts in each category
+                'R2': len(unames['R2'].dropna()),
+                'R3': len(unames['R3'].dropna()),
+                'Top100LiberalArts': 100}
     print(u_tier_count,u_tier_tot)
     x=np.arange(4)
     bar_width=0.4
-    ax.bar(x, u_tier_count.values(), bar_width, color='b')
-    for idx, c in enumerate(u_tier_count.values()):
+    u_counts=[u_tier_count[k] for k in sorted(u_tier_count)] # ordered values alphabetically by key
+    ax.bar(x, u_counts, bar_width, color='b')
+    for idx, c in enumerate(u_counts):
         perc='{:2}%'.format(int(c*100/dom)) # dom is calculated as: len(apps[apps['Institution 1 Location'].isin(US_states)])
         ax.annotate(perc, (x[idx]-0.1, c+2) , color='green') 
     ax.set_xlabel('Carnegie Classification of University of applicant, as of 2019',size = 16)
@@ -464,8 +475,40 @@ def main():
     ax.text(0.38,0.85,"R3: Doctoral Moderate Research [N=%3i]"%u_tier_tot['R3'],transform=ax.transAxes)
     ax.text(0.38,0.8,"%% of students in US institutions [N=%3i]"%dom, color='green',transform=ax.transAxes)
     ax.set_xticks(x)
-    ax.set_xticklabels(u_tier_count.keys())
+    ax.set_xticklabels([k for k in sorted(u_tier_count)])
     plt.savefig("11GAC-UniversityResearchTier.png")
+    #
+    # Plot boxes of GRE and GPA for each research tier
+    #
+    tiers = np.asarray(sorted(u_tier_count.items())) # sorted alphabetically by key
+    #print(infoByTopic(apps,'GRE Quantitative Percentile', tiers,'URank'))
+    fig, (ax1,ax2) = plt.subplots(1,2, figsize=(16,5))
+    ax1.boxplot(infoByTopic(apps, 'Normalized GPA', tiers, 'URank'), 0, whis=[2.5, 97.5], sym='')
+    ax1.set_xticklabels(tiers[:,0], rotation=0)
+    ax1.set(title='Institution 1 GPA (4.0 Scale)',
+           ylim=(2.7,4.0),
+           ylabel='GPA')
+    ax2.boxplot(infoByTopic(apps, 'GRE Subject Total Score %', tiers, 'URank'), 0, whis=[2.5, 97.5], sym='')
+    ax2.set_xticklabels(tiers[:,0], rotation=0)
+    ax2.set(title='GRE Subject (Physics) Total Score %',
+       ylabel='percentile',
+       ylim=(0,100))
+    fig.tight_layout()
+    fig.savefig("12GAC-GPAGREByResearchTier.png")
+    
+    fig, ax = plt.subplots()
+
+    groups = apps.groupby('URank')
+    for name, group in groups:
+        ax.plot(group['GRE Subject Total Score %'], group['Normalized GPA'], marker='o', linestyle='', ms=4, label=name)
+    ax.legend()
+    #axScatter.scatter(apps['GRE Subject Total Score %'], apps['Normalized GPA'])
+    ax.set_xlim((0, 100))
+    ax.set_ylim((2.7, 4))
+    ax.set_xlabel("GRE Subject Total Score %")
+    ax.set_ylabel("Undergrad GPA (4.0 Scale)")
+    plt.savefig("12GAC-ScatterByResearchTier.png")
+    
     #
     # US states of Institution 1
     #
@@ -475,7 +518,7 @@ def main():
     pandas.Series(CollStates).value_counts().plot('pie')
     #print(list(pandas.Series(CollStates).value_counts().keys()))
     #print(pandas.Series(CollStates).value_counts().values)
-    plt.savefig("12GAC-USStateInstitution1.png")
+    plt.savefig("13GAC-USStateInstitution1.png")
     # Heat map of US:
     #sudo -H pip3 install plotly-geo geopandas pyshp shapely
     # import plotly.graph_objects as go    
@@ -497,7 +540,8 @@ def main():
     lang=apps['Principal Language Spoken at Home']
     # Bar or pie plot:
     pandas.Series(lang).value_counts().plot('bar')
-    plt.savefig("13GAC-LanguageAtHome.png")
+    plt.savefig("14GAC-LanguageAtHome.png")
+    
     
 if __name__ == "__main__":
     main()
