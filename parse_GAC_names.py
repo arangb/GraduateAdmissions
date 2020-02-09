@@ -38,7 +38,12 @@ for filename in sorted(os.listdir(gac_dir)): # order the pdf files alphabeticall
         for fac in fac_names:
 			grep_cmd = '/bin/grep \"' + fac + '\" \"' + filename_txt + '\"'
 			grep_result = os.popen(grep_cmd).read()
-			if (fac == 'Nichol' and ('Nicholas' in grep_result)) or (fac == 'Frank' and ('Wolfs' in grep_result)) or (fac == 'Wu' and ('Wuhan' in grep_result)) or (fac in student_name):
+			if (fac == 'Nichol' and ('Nicholas' in grep_result)) or 
+			   (fac == 'Frank' and (any(x in grep_result for x in ['Wolfs', 'Frankfurt']))) or 
+			   (fac == 'Wu' and ('Wuhan' in grep_result)) or 
+			   (fac == 'Thomas' and (any(x in grep_result for x in ['Foster', 'Ferbel', 'Jefferson', 'Edison']))) or 
+			   (fac == 'Ren' and (any(x in grep_result for x in ['Renninger', 'Renbin', 'Rene', 'Rensselaer', 'Renewable']))) or
+			   (fac in student_name):
 			    continue
 			if not grep_result == "": 
 				print(grep_cmd)
@@ -50,7 +55,7 @@ for filename in sorted(os.listdir(gac_dir)): # order the pdf files alphabeticall
 					foundfac=foundfac+', '+fac
 		
 			student_foundfac[student_name]=foundfac
-#print student_foundfac		
+#print student_foundfac
 
 import csv
 with open('StudentFacnames.csv', 'wb') as csvfile:
@@ -64,6 +69,7 @@ print("Wrote file StudentFacnames.csv with two rows: StudentName FoundFacultyNam
 fac_count['Frank']-=9
 fac_count['Ren']-=10
 fac_count['Nichol']+=1
+fac_count['Thomas']-=14
 # fac_count['Franco']-=1
 # fac_count['Guo']-=4
 fac_count['Zhang']-=7

@@ -46,7 +46,7 @@ plt.plot(Data.Year, intlpercapp,linewidth=2.0, linestyle='-', color='blue', mark
 plt.plot(Data.Year, dompercapp, linewidth=2.0, linestyle='-', color='red', marker='o', markersize=5.2)
 plt.plot(Data.Year, womenpercapp, linewidth=2.0, linestyle='-', color='green', marker='>', markersize=5.2)
 plt.plot(Data.Year, urmpercapp,linewidth=2.0, linestyle='-', color='black', marker='*', markersize=5.2)
-plt.legend(('Foreign','USA','Women','URM'), loc='upper center', frameon=False, numpoints=1,
+plt.legend(('FN','US','Women','URM'), loc='upper center', frameon=False, numpoints=1,
 			  ncol=4, mode='expand', handletextpad=0.20, columnspacing=0.5, borderaxespad=0.1)
 plt.title("Composition of applicants")
 plt.ylabel("% of applicants")
@@ -69,7 +69,7 @@ plt.plot(Data.Year, dompercoff, linewidth=2.0, linestyle='-', color='red', marke
 plt.plot(Data.Year, intlpercoff,linewidth=2.0, linestyle='-', color='blue', marker='^', markersize=5.2)
 plt.plot(Data.Year, womenpercoff, linewidth=2.0, linestyle='-', color='green', marker='>', markersize=5.2)
 plt.plot(Data.Year, urmpercoff,linewidth=2.0, linestyle='-', color='black', marker='*', markersize=5.2)
-plt.legend( ('USA','Foreign','Women','URM') , loc='upper right', frameon=False,numpoints=1,
+plt.legend( ('US','FN','Women','URM') , loc='upper right', frameon=False,numpoints=1,
 			  ncol=4, mode='expand', handletextpad=0.20, columnspacing=0.5, borderaxespad=0.1)
 plt.title("Composition of offers made")
 plt.ylabel("% of offers")
@@ -92,7 +92,7 @@ plt.plot(Data.Year, dompercacc, linewidth=2.0, linestyle='-', color='red', marke
 plt.plot(Data.Year, intlpercacc,linewidth=2.0, linestyle='-', color='blue', marker='^', markersize=5.2)
 plt.plot(Data.Year, womenpercacc, linewidth=2.0, linestyle='-', color='green', marker='>', markersize=5.2)
 plt.plot(Data.Year, urmpercacc,linewidth=2.0, linestyle='-', color='black', marker='*', markersize=5.2)
-plt.legend( ('USA','Foreign','Women','URM') , loc='upper right', frameon=False,numpoints=1,
+plt.legend( ('US','FN','Women','URM') , loc='upper right', frameon=False,numpoints=1,
 			ncol=4, mode='expand', handletextpad=0.20, columnspacing=0.5, borderaxespad=0.1)
 plt.title("Composition of each cohort")
 plt.ylabel("% of those accepted")
@@ -116,7 +116,7 @@ plt.plot(Data.Year, Adomperc, linewidth=2.0, linestyle='-', color='red', marker=
 plt.plot(Data.Year, Aintlperc,linewidth=2.0, linestyle='-', color='blue', marker='^', markersize=5.2)
 plt.plot(Data.Year, Awomenperc, linewidth=2.0, linestyle='-', color='green', marker='>', markersize=5.2)
 plt.plot(Data.Year, Aurmperc,linewidth=2.0, linestyle='-', color='black', marker='*', markersize=5.2)
-plt.legend( ('Total','USA','Foreign','Women','URM') , loc='upper right', frameon=False,numpoints=1,
+plt.legend( ('Total','US','FN','Women','URM') , loc='upper right', frameon=False,numpoints=1,
 			 ncol=5, mode='expand', handlelength=1.5, handletextpad=0.20, columnspacing=0.5, borderaxespad=0.1)
 plt.title("Yield: accepted/offered")
 plt.ylabel("% accept of offers in that group")
@@ -161,7 +161,7 @@ plt.plot(Data.Year, AccIntl,linewidth=2.0, linestyle='-', color='blue', marker='
 plt.plot(Data.Year, AccMen,linewidth=2.0, linestyle='-', color='orange',marker='+', markersize=5.2)
 plt.plot(Data.Year, AccWomen, linewidth=2.0, linestyle='-', color='green', marker='>', markersize=5.2)
 plt.plot(Data.Year, AccURM, linewidth=2.0, linestyle='-', color='black', marker='*', markersize=5.2)
-plt.legend(('USA','Foreign','Men','Women','URM') , loc='upper right', frameon=False,numpoints=1)
+plt.legend(('US','FN','Men','Women','URM') , loc='upper right', frameon=False,numpoints=1)
 			 #ncol=5, mode='expand', handlelength=1.5, handletextpad=0.20, columnspacing=0.5, borderaxespad=0.1)
 plt.title("Offer Ratio: % offered / % applied")
 plt.ylabel("Offer Ratio")
@@ -190,7 +190,7 @@ plt.plot(Data.Year, Men,linewidth=2.0, linestyle='-', color='orange',marker='+',
 plt.plot(Data.Year, Women, linewidth=2.0, linestyle='-', color='green', marker='>', markersize=5.2)
 plt.plot(Data.Year, URM,linewidth=2.0, linestyle='-', color='black', marker='*', markersize=5.2)
 plt.plot(Data.Year, avg, linewidth=2.0, linestyle='--', color='gray')
-plt.legend(('USA','Foreign','Men','Women','URM','All') , loc='upper right', frameon=False,numpoints=1)
+plt.legend(('US','FN','Men','Women','URM','All') , loc='upper right', frameon=False,numpoints=1)
 			 #ncol=5, mode='expand', handlelength=1.5, handletextpad=0.20, columnspacing=0.5, borderaxespad=0.1)
 plt.title("Offer rate: offered/applied")
 plt.ylabel("Offer rate %")
