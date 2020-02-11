@@ -13,8 +13,8 @@ US_states = ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DC", "DE", "FL", "GA",
 
 plt.rc('font', family='sans-serif', size=16)
 
-apps = pandas.read_excel('/home/aran/GAC19/GraduateAdmissions/190215_scores_all.xlsx')
-#apps = pandas.read_excel('2020_all_applicants_data.xlsx')
+#apps = pandas.read_excel('/home/aran/GAC19/GraduateAdmissions/190215_scores_all.xlsx')
+apps = pandas.read_excel('2020_all_applicants_data.xlsx')
 # Append several files:
 #df18=pandas.read_excel('/home/aran/GAC19/GraduateAdmissions/18_data_all.xlsx')
 #df19=pandas.read_excel('/home/aran/GAC19/GraduateAdmissions/190215_scores_all.xlsx')
@@ -25,7 +25,7 @@ apps = pandas.read_excel('/home/aran/GAC19/GraduateAdmissions/190215_scores_all.
 # apps
 # Make cuts:
 #apps = apps[apps['New Rank']<76].reset_index(drop = True)
-apps = apps[apps['STATUS']=="ADMIT"].reset_index(drop = True).dropna(how='all', axis=1)
+#apps = apps[apps['STATUS']=="ADMIT"].reset_index(drop = True).dropna(how='all', axis=1)
 #apps=apps[apps['GRE Subject Total Score %']>0].reset_index(drop = True)
 #apps=apps[(apps['Institution 1 GPA Score']>0)].reset_index(drop = True)
 #apps=apps[(apps['GRE Quantitative']>0)].reset_index(drop = True)
@@ -162,8 +162,8 @@ def main():
     
     noPGRE=len(gres)-len(gres[gres>0])
     print('\nDid NOT submit PGRE=%3i (%2.0f%%)'%(noPGRE,noPGRE*100./len(gres)))
-    print('GRE Mean = %5.3f, Median = %5.3f percentile'%(np.mean(gres[gres>0]),np.median(gres[gres>0])))
-    print('GPA Mean = %5.3f, Median = %5.3f'%(np.mean(apps['Normalized GPA'][apps['Normalized GPA']>0]),np.median(apps['Normalized GPA'][apps['Normalized GPA']>0])))
+    print('GRE Mean = %3.0f, Median = %3.0f percentile'%(np.mean(gres[gres>0]),np.median(gres[gres>0])))
+    print('GPA Mean = %5.2f, Median = %5.2f'%(np.mean(apps['Normalized GPA'][apps['Normalized GPA']>0]),np.median(apps['Normalized GPA'][apps['Normalized GPA']>0])))
 
     #
     # GRE vs GPA scatter plot with U names
@@ -190,12 +190,12 @@ def main():
     # GRE breakdown
     #
     vpd=apps['GRE Verbal Percentile'].dropna()
-    vpl='Mean = %3.1f, Median = %3.1f'%(np.mean(vpd),np.median(vpd))
-    pgrel='Mean = %3.1f, Median = %3.1f'%(np.mean(gres[gres>0]),np.median(gres[gres>0]))
+    vpl='Mean = %3.0f, Median = %3.0f'%(np.mean(vpd),np.median(vpd))
+    pgrel='Mean = %3.0f, Median = %3.0f'%(np.mean(gres[gres>0]),np.median(gres[gres>0]))
     awd=apps['GRE Analytical Writing Percentile'].dropna()
-    awl='Mean = %3.1f, Median = %3.1f'%(np.mean(awd),np.median(awd))
+    awl='Mean = %3.0f, Median = %3.0f'%(np.mean(awd),np.median(awd))
     qpd=apps['GRE Quantitative Percentile'].dropna()
-    qpl='Mean = %3.1f, Median = %3.1f'%(np.mean(qpd),np.median(qpd))
+    qpl='Mean = %3.0f, Median = %3.0f'%(np.mean(qpd),np.median(qpd))
     axes = apps.hist(column=['GRE Verbal Percentile',
                              'GRE Subject Total Score %',
                              'GRE Analytical Writing Percentile',
@@ -218,20 +218,20 @@ def main():
     NURM=len(apps[apps.URM=='Yes']['URM'])
     Nhisp=len(apps[apps.Hispanic=='Y']['URM'])
     Ntot=len(apps['URM'])
-    print('Women:    %3i/%-3i=%3.1f%%'%(Nwomen,Ntot,float(Nwomen)/float(Ntot)*100.))
-    print('URM:      %3i/%-3i=%3.1f%%'%(NURM,Ntot,float(NURM)/float(Ntot)*100.))
-    print('Hispanic: %3i/%-3i=%3.1f%%'%(Nhisp,Ntot,float(Nhisp)/float(Ntot)*100.))
+    print('Women:    %3i/%-3i=%3.0f%%'%(Nwomen,Ntot,float(Nwomen)/float(Ntot)*100.))
+    print('URM:      %3i/%-3i=%3.0f%%'%(NURM,Ntot,float(NURM)/float(Ntot)*100.))
+    print('Hispanic: %3i/%-3i=%3.0f%%'%(Nhisp,Ntot,float(Nhisp)/float(Ntot)*100.))
     print(pandas.crosstab(apps.Citizenship1,apps.Sex,margins=True))
     us=len(apps[(apps['Citizenship']=='US') | (apps['Citizenship']=='PR')])
     fn=len(apps[apps['Citizenship']=='FN'])
-    print('\nUS: %3i/%-3i=%3.1f%%'%(us,us+fn,float(us)/float(us+fn)*100.))
-    print('FN: %3i/%-3i=%3.1f%%'%(fn,us+fn,float(fn)/float(us+fn)*100.))
+    print('\nUS: %3i/%-3i=%3.0f%%'%(us,us+fn,float(us)/float(us+fn)*100.))
+    print('FN: %3i/%-3i=%3.0f%%'%(fn,us+fn,float(fn)/float(us+fn)*100.))
     dom = -10
     if 'Institution 1 Location' in apps.columns:
         dom=len(apps[apps['Institution 1 Location'].isin(US_states)])
         fn_in_dom=len(apps[(apps['Institution 1 Location'].isin(US_states)) & (apps['Citizenship']=='FN')])
-        print('From domestic institutions: %3i/%-3i=%3.1f%%'%(dom,Ntot,float(dom)/float(Ntot)*100.))
-        print('FN in domestic institutions: %3i/%-3i=%3.1f%%'%(fn_in_dom,dom,float(fn_in_dom)/float(dom)*100.))
+        print('From domestic institutions: %3i/%-3i=%3.0f%%'%(dom,Ntot,float(dom)/float(Ntot)*100.))
+        print('FN in domestic institutions: %3i/%-3i=%3.0f%%'%(fn_in_dom,dom,float(fn_in_dom)/float(dom)*100.))
     print('\nAverage TOEFL score: %4.1f'%np.mean(apps['TOEFL Total']))
     #
     # Breakdown by Gender
@@ -336,7 +336,7 @@ def main():
     Nth=len(apps['App - physics_major'][apps['App - physics_major']=='Theory'])
     Nex=len(apps['App - physics_major'][apps['App - physics_major']=='Experiment'])
     Ntot=len(apps['App - physics_major'].dropna())
-    print('Theory: %3i/%-3i=%3.1f%% \nExperiment: %3i/%-3i=%3.1f%% \nUndecided: %3i/%-3i=%3.1f%%' %(Nth,Ntot,100.*float(Nth)/float(Ntot),Nex,Ntot,100.*float(Nex)/float(Ntot),Ntot-Nex-Nth,Ntot,100.*float(Ntot-Nex-Nth)/float(Ntot)))
+    print('Theory: %3i/%-3i=%3.0f%% \nExperiment: %3i/%-3i=%3.0f%% \nUndecided: %3i/%-3i=%3.0f%%' %(Nth,Ntot,100.*float(Nth)/float(Ntot),Nex,Ntot,100.*float(Nex)/float(Ntot),Ntot-Nex-Nth,Ntot,100.*float(Ntot-Nex-Nth)/float(Ntot)))
     
     # Now loop through each student entry and count the interests
     import operator
