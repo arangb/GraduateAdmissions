@@ -13,17 +13,19 @@ US_states = ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DC", "DE", "FL", "GA",
 
 plt.rc('font', family='sans-serif', size=16)
 
-#apps = pandas.read_excel('190215_scores_all.xlsx')
-#apps = pandas.read_excel('../../GAC18/180213_data_100.xlsx')
-#apps = pandas.read_excel('2020_scores_all.xlsx')
-apps = pandas.read_excel('2020_all_applicants_data.xlsx')
-#apps = pandas.read_excel('190125_data_allapps.xlsx')
+apps = pandas.read_excel('/home/aran/GAC19/GraduateAdmissions/190215_scores_all.xlsx')
+#apps = pandas.read_excel('2020_all_applicants_data.xlsx')
+# Append several files:
+#df18=pandas.read_excel('/home/aran/GAC19/GraduateAdmissions/18_data_all.xlsx')
+#df19=pandas.read_excel('/home/aran/GAC19/GraduateAdmissions/190215_scores_all.xlsx')
+#df20=pandas.read_excel('2020_all_applicants_data.xlsx')
+#apps=df20.append([df18,df19],ignore_index=True,sort=False)
 # 
 ## Uncomment to view the entire input table.
 # apps
 # Make cuts:
 #apps = apps[apps['New Rank']<76].reset_index(drop = True)
-#apps = apps[apps['STATUS']=="ADMIT"].reset_index(drop = True)
+apps = apps[apps['STATUS']=="ADMIT"].reset_index(drop = True).dropna(how='all', axis=1)
 #apps=apps[apps['GRE Subject Total Score %']>0].reset_index(drop = True)
 #apps=apps[(apps['Institution 1 GPA Score']>0)].reset_index(drop = True)
 #apps=apps[(apps['GRE Quantitative']>0)].reset_index(drop = True)
@@ -35,7 +37,7 @@ apps = pandas.read_excel('2020_all_applicants_data.xlsx')
 
 def normalize_GPA(gpas):
 	''' Normalize GPA to a top score of 4.0'''
-	print('Normalizing GPAs')
+	#print('Normalizing GPAs')
 	normgpas=[]
 	for g in gpas:
 		if g>4.0 and g<=5.0:
@@ -224,10 +226,12 @@ def main():
     fn=len(apps[apps['Citizenship']=='FN'])
     print('\nUS: %3i/%-3i=%3.1f%%'%(us,us+fn,float(us)/float(us+fn)*100.))
     print('FN: %3i/%-3i=%3.1f%%'%(fn,us+fn,float(fn)/float(us+fn)*100.))
-    dom=len(apps[apps['Institution 1 Location'].isin(US_states)])
-    fn_in_dom=len(apps[(apps['Institution 1 Location'].isin(US_states)) & (apps['Citizenship']=='FN')])
-    print('From domestic institutions: %3i/%-3i=%3.1f%%'%(dom,Ntot,float(dom)/float(Ntot)*100.))
-    print('FN in domestic institutions: %3i/%-3i=%3.1f%%'%(fn_in_dom,dom,float(fn_in_dom)/float(dom)*100.))
+    dom = -10
+    if 'Institution 1 Location' in apps.columns:
+        dom=len(apps[apps['Institution 1 Location'].isin(US_states)])
+        fn_in_dom=len(apps[(apps['Institution 1 Location'].isin(US_states)) & (apps['Citizenship']=='FN')])
+        print('From domestic institutions: %3i/%-3i=%3.1f%%'%(dom,Ntot,float(dom)/float(Ntot)*100.))
+        print('FN in domestic institutions: %3i/%-3i=%3.1f%%'%(fn_in_dom,dom,float(fn_in_dom)/float(dom)*100.))
     print('\nAverage TOEFL score: %4.1f'%np.mean(apps['TOEFL Total']))
     #
     # Breakdown by Gender
@@ -297,7 +301,6 @@ def main():
     # Categorization by Interests
     #
     # Sort students by interest, dropping records where interest is not explicitly mentioned in the students' personal statement.
-    
     # Grab a full table of interests from what they clicked or based on personal statements, dropping empty values
     #interests = apps['App - physics_focus'].dropna()
     whichint= 'App - physics_focus'  ### 'App - physics_focus' or 'Interest narrowed from PS'
@@ -426,7 +429,7 @@ def main():
     fig.tight_layout()
     fig.savefig("09GAC-GREAnalyticalWritingPercentile.png")
     #
-    ### Recommendation Letters
+    # Recommendation Letters
     #
     import scipy.stats as stats
     plt.figure() # New figure
@@ -446,7 +449,7 @@ def main():
     #plt.xscale('log')
     plt.savefig("10GAC-RecLettAvgScore.png")
     #
-    ### US University research tier
+    # US University research tier
     #
     plt.figure() # New figure
     fig, ax = plt.subplots(figsize=(10, 10))
@@ -464,9 +467,10 @@ def main():
     bar_width=0.4
     u_counts=[u_tier_count[k] for k in sorted(u_tier_count)] # ordered values alphabetically by key
     ax.bar(x, u_counts, bar_width, color='b')
-    for idx, c in enumerate(u_counts):
-        perc='{:2}%'.format(int(c*100/dom)) # dom is calculated as: len(apps[apps['Institution 1 Location'].isin(US_states)])
-        ax.annotate(perc, (x[idx]-0.1, c+2) , color='green') 
+    if dom > 0:
+        for idx, c in enumerate(u_counts):
+            perc='{:2}%'.format(int(c*100/dom)) # dom is calculated as: len(apps[apps['Institution 1 Location'].isin(US_states)])
+            ax.annotate(perc, (x[idx]-0.1, c+2) , color='green') 
     ax.set_xlabel('Carnegie Classification of University of applicant, as of 2019',size = 16)
     ax.set_ylabel('Students',size = 16)
     ax.set_title('Top Liberal Arts colleges from Times Higher Education',size = 18)
@@ -495,52 +499,50 @@ def main():
        ylim=(0,100))
     fig.tight_layout()
     fig.savefig("12GAC-GPAGREByResearchTier.png")
-    
+    # Scatter plot of GRE vs GPA for each research tier:    
     fig, ax = plt.subplots()
-
     groups = apps.groupby('URank')
     for name, group in groups:
         ax.plot(group['GRE Subject Total Score %'], group['Normalized GPA'], marker='o', linestyle='', ms=4, label=name)
     ax.legend()
-    #axScatter.scatter(apps['GRE Subject Total Score %'], apps['Normalized GPA'])
     ax.set_xlim((0, 100))
     ax.set_ylim((2.7, 4))
     ax.set_xlabel("GRE Subject Total Score %")
     ax.set_ylabel("Undergrad GPA (4.0 Scale)")
     plt.savefig("12GAC-ScatterByResearchTier.png")
-    
     #
     # US states of Institution 1
     #
-    plt.figure() # New figure
-    CollStates=apps[apps['Institution 1 Location'].isin(US_states)]['Institution 1 Location']
-    # Bar or pie plot:
-    pandas.Series(CollStates).value_counts().plot('pie')
-    #print(list(pandas.Series(CollStates).value_counts().keys()))
-    #print(pandas.Series(CollStates).value_counts().values)
-    plt.savefig("13GAC-USStateInstitution1.png")
-    # Heat map of US:
-    #sudo -H pip3 install plotly-geo geopandas pyshp shapely
-    # import plotly.graph_objects as go    
-    # fig = go.Figure(data=go.Choropleth(
-        # locations=list(pandas.Series(CollStates).value_counts().keys()), 
-        # z=list(pandas.Series(CollStates).value_counts().values), 
-        # locationmode = 'USA-states',
-        # colorscale = 'Reds', colorbar_title = "Students"))
-    # fig.update_layout(title_text = 'US state of Institution 1',
-        # geo_scope='usa')
-    #fig.show() # this will open plot in existing browser session
+    if 'Institution 1 Location' in apps.columns:
+        plt.figure() # New figure
+        CollStates=apps[apps['Institution 1 Location'].isin(US_states)]['Institution 1 Location']
+        # Bar or pie plot:
+        pandas.Series(CollStates).value_counts().plot('pie')
+        #print(list(pandas.Series(CollStates).value_counts().keys()))
+        #print(pandas.Series(CollStates).value_counts().values)
+        plt.savefig("13GAC-USStateInstitution1.png")
+        # Heat map of US:
+        #sudo -H pip3 install plotly-geo geopandas pyshp shapely
+        # import plotly.graph_objects as go    
+        # fig = go.Figure(data=go.Choropleth(
+            # locations=list(pandas.Series(CollStates).value_counts().keys()), 
+            # z=list(pandas.Series(CollStates).value_counts().values), 
+            # locationmode = 'USA-states',
+            # colorscale = 'Reds', colorbar_title = "Students"))
+        # fig.update_layout(title_text = 'US state of Institution 1', geo_scope='usa')
+        #fig.show() # this will open plot in existing browser session
     
     #
     # Principal Language Spoken at Home
     #
     # This is a dictionary with the languages in two-letter abbreviation:
     # https://gist.githubusercontent.com/carlopires/1262033/raw/1a2d842c7ed2f54502ae5a774d0d2b4df49fcf3c/ISO639_2.py
-    plt.figure() # New figure
-    lang=apps['Principal Language Spoken at Home']
-    # Bar or pie plot:
-    pandas.Series(lang).value_counts().plot('bar')
-    plt.savefig("14GAC-LanguageAtHome.png")
+    if 'Principal Language Spoken at Home' in apps.columns:
+        plt.figure() # New figure
+        lang=apps['Principal Language Spoken at Home']
+        # Bar or pie plot:
+        pandas.Series(lang).value_counts().plot('bar')
+        plt.savefig("14GAC-LanguageAtHome.png")
     
     
 if __name__ == "__main__":
