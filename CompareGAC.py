@@ -10,12 +10,12 @@ import pandas
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from Analytics import get_UniversityRank, get_RecLettScore, normalize_GPA
+from Analytics import get_UniversityRank, get_RecLettScore
 
 f1=pandas.read_excel('/home/aran/GAC19/GraduateAdmissions/190215_scores_all.xlsx')
-f2=pandas.read_excel('2020_scores_all_200204.xlsx')
+f2=pandas.read_excel('2020_scores_all.xlsx')
 #f2=pandas.read_excel('2020_all_applicants_data.xlsx')
-#d1=f1
+d1=f1
 #d2=f2
 d1=f1[(f1['Decision Status']=='ADMIT')].reset_index(drop = True)
 d2=f2[(f2['Decision Status']=='ADMIT')].reset_index(drop = True)
@@ -30,8 +30,8 @@ d2=f2[(f2['Decision Status']=='ADMIT')].reset_index(drop = True)
 #d2=f2[(f2['Citizenship']=='FN')].reset_index(drop = True)
 #datasets=[d1,d2,d3,d4] # hlabels=['2018 US','2019 US', '2018 FN', '2019 FN']
 datasets=[d1,d2]
-hlabels=['Admits19','80Admits20']
-variables_to_plot = ['Institution 1 GPA Score','GRE Subject Total Score %','GRE Quantitative Percentile','Recommender']
+hlabels=['Admits19','Admits20']
+variables_to_plot = ['Institution 1 GPA (4.0 Scale)','GRE Subject Total Score %','GRE Quantitative Percentile','Recommender']
 variables_histp = [[20,2.5,4.0,2],[20,0,100,2],[20,0,100,2],[30,0,30,1]] # the parameters [Nbins, xmin, xmax, legloc] for each histogram/variable
 #hcolors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
 hcolors = ['#1f77b4', '#ff7f0e','#1f77b4', '#ff7f0e']
@@ -68,8 +68,6 @@ for n,v in enumerate(variables_to_plot):
 			title="Scores: AB=1, 5%=5, 10%=10, TopQt=25, Avg=50"
 		else:
 			h=d[v].dropna()
-		if 'GPA' in v:
-			h=normalize_GPA(h)
 		#Put some stats on the labels:
 		lbltxt=hlabels[j]+': N=%3i Mean=%5.2f Median=%5.2f'%(len(h),np.mean(h),np.median(h))
 		#Plot histogram:
@@ -179,7 +177,7 @@ for j,d in enumerate(datasets):
 	#print(type(bignatcount))
 	names=[x for x,v in bignatcount.items()]
 	bothnames+=names
-# Now remove duplicate entries from bothnames and sort alphabetically:
+# Now remove duplicate entries from both names and sort alphabetically:
 natnames=sorted(list(set(bothnames)))
 x=np.arange(len(natnames))
 bar_width=0.4

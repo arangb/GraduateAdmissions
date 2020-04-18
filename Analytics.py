@@ -14,7 +14,8 @@ US_states = ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DC", "DE", "FL", "GA",
 plt.rc('font', family='sans-serif', size=16)
 
 #apps = pandas.read_excel('/home/aran/GAC19/GraduateAdmissions/190215_scores_all.xlsx')
-apps = pandas.read_excel('2020_all_applicants_data.xlsx')
+#apps = pandas.read_excel('2020_all_applicants_data.xlsx')
+apps = pandas.read_excel('2020_scores_all.xlsx')
 # Append several files:
 #df18=pandas.read_excel('/home/aran/GAC19/GraduateAdmissions/18_data_all.xlsx')
 #df19=pandas.read_excel('/home/aran/GAC19/GraduateAdmissions/190215_scores_all.xlsx')
@@ -25,7 +26,7 @@ apps = pandas.read_excel('2020_all_applicants_data.xlsx')
 # apps
 # Make cuts:
 #apps = apps[apps['New Rank']<76].reset_index(drop = True)
-#apps = apps[apps['STATUS']=="ADMIT"].reset_index(drop = True).dropna(how='all', axis=1)
+apps = apps[apps['Decision Status']=="ADMIT"].reset_index(drop = True).dropna(how='all', axis=1)
 #apps=apps[apps['GRE Subject Total Score %']>0].reset_index(drop = True)
 #apps=apps[(apps['Institution 1 GPA Score']>0)].reset_index(drop = True)
 #apps=apps[(apps['GRE Quantitative']>0)].reset_index(drop = True)
@@ -361,14 +362,15 @@ def main():
               "lightblue", "papayawhip", "cyan",         "peru",
               "plum",      "gold",       "lemonchiffon", "lightgrey",
               "white"]
-                  
+    colors = ["#0000bd", "#008000", "#f20019", "#00fefe", "#8f00c7", "#0086fe", "#5d0016", "#827800", "#fe68fe", "#ff6600"]
+    
     fig, ax = plt.subplots(1,1, figsize=(6,5))
     ax.pie(topicSorted[:,1],
            labels=topicSorted[:,0],
            #autopct="%.1f",
            autopct=lambda p: '{:.0f}'.format(p * total / 100),
            colors=colors[:len(topics)],
-           startangle=90)
+           startangle=90, wedgeprops={'alpha':0.5})
     ax.set(aspect='equal')
     if whichint =='Interest narrowed from PS':
         ax.set_title('Field interests from PS')
@@ -510,6 +512,23 @@ def main():
     ax.set_xlabel("GRE Subject Total Score %")
     ax.set_ylabel("Undergrad GPA (4.0 Scale)")
     plt.savefig("12GAC-ScatterByResearchTier.png")
+    # Histos for each classification
+    fig, (ax1,ax2) = plt.subplots(1,2, figsize=(16,5))
+    g=0
+    for name, group in groups:
+        ax1.hist(group['GRE Subject Total Score %'], 20, lw=3, range=[0,100], histtype='step', color=colors[g], label=name)
+        g=g+1
+    ax1.legend(loc=2)
+    ax1.set_xlim((0, 100))
+    ax1.set_xlabel("GRE Subject Total Score %")
+    g=0
+    for name, group in groups:
+        ax2.hist(group['Institution 1 GPA (4.0 Scale)'], 20, lw=3, range=[2.7,4], histtype='step', color=colors[g], label=name)
+        g=g+1
+    ax2.legend(loc=2)
+    ax2.set_xlabel("Institution 1 GPA (4.0 Scale)")
+    fig.tight_layout()
+    fig.savefig("12GAC-GPAGREHistosByResearchTier.png")
     #
     # US states of Institution 1
     #
@@ -537,6 +556,7 @@ def main():
     #
     # This is a dictionary with the languages in two-letter abbreviation:
     # https://gist.githubusercontent.com/carlopires/1262033/raw/1a2d842c7ed2f54502ae5a774d0d2b4df49fcf3c/ISO639_2.py
+    plt.close('all')
     if 'Principal Language Spoken at Home' in apps.columns:
         plt.figure() # New figure
         lang=apps['Principal Language Spoken at Home']
