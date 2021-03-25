@@ -14,8 +14,8 @@ from datetime import datetime
 
 plt.rc('font', family='sans-serif', size=16)
 
-#The data file should be an exported query with the following fields:
-# Name,Received,Decision 1 Confirmed Date,Decision 1,Institution 1 GPA (4.0 Scale),Period Year
+#The data file should be an exported query with at least following fields:
+# Name,Decision 1 Confirmed Date,Decision 1,Institution 1 GPA (4.0 Scale),Period Year
 df= pandas.read_excel(r'C:\Users\Nichol\Downloads\Decision date 20210325-100623.xlsx')
 
 #find the days before the due date the decision was made. The actual "deadline" is 4/16
