@@ -131,7 +131,7 @@ xdata=xdata[inds]
 ydata=ydata[inds]
 popt_decline,pcov = curve_fit(func, xdata, ydata,bounds=(lb,ub))
  
-plt.figure(7,figsize=(10,10))    
+plt.figure(6,figsize=(10,10))    
 plt.clf()
 plt.scatter(xdata,ydata,label='Data')
 plt.xlabel("Days before 4/6")
@@ -169,3 +169,47 @@ print("Calculated accpets from fitting %3.3f and direct calculation %3.3f" %
       current_declines/func(days_to_deadline,*popt_decline)))
 
 #TODO: bin the mean times to acceptanceby GPA
+
+gpa_bins=np.linspace(3,4,11)
+gpa_accepts_norm=np.empty([0]);
+gpa_accepts=np.empty([0]);
+
+gpa_days_accept=np.empty([0]);
+gpa_days_decline=np.empty([0]);
+
+
+for gpa in gpa_bins[0:10]:
+        criteria=(df['Institution 1 GPA (4.0 Scale)'] > gpa) & (df['Institution 1 GPA (4.0 Scale)'] <= gpa+0.1) & (df['Decision 1']=="Admit/Accept Offer")   
+        df_accepts = df[criteria].reset_index(drop = True).dropna(how='all', axis=1)
+        
+        
+        criteria=(df['Institution 1 GPA (4.0 Scale)'] > gpa) & (df['Institution 1 GPA (4.0 Scale)'] <= gpa+0.1) & (df['Decision 1']=="Admit/Decline Offer")   
+        df_declines = df[criteria].reset_index(drop = True).dropna(how='all', axis=1)
+        
+        gpa_accepts=np.append(gpa_accepts,len(df_accepts));
+        gpa_accepts_norm=np.append(gpa_accepts_norm,len(df_accepts)/(len(df_accepts)+len(df_declines)));
+        gpa_days_accept=np.append(gpa_days_accept,df_accepts.days_before.mean());
+        gpa_days_decline=np.append(gpa_days_decline,df_declines.days_before.mean());
+
+
+plt.figure(7,figsize=(10,10))    
+plt.clf()
+plt.scatter(gpa_bins[1:11],gpa_days_accept,label='Accepts')
+plt.plot(gpa_bins[1:11],gpa_days_accept)
+plt.scatter(gpa_bins[1:11],gpa_days_decline,label='Declines')
+plt.plot(gpa_bins[1:11],gpa_days_decline)
+plt.xlabel("GPA")
+plt.ylabel("Days before 4/16 decision was made")
+plt.show()
+plt.legend()     
+
+plt.figure(8,figsize=(10,10))    
+plt.clf()
+plt.scatter(gpa_bins[1:11],gpa_accepts_norm,label='Yield')
+plt.plot(gpa_bins[1:11],gpa_accepts_norm)
+plt.scatter(gpa_bins[1:11],np.divide(gpa_accepts,np.sum(gpa_accepts)),label='Weight')
+plt.plot(gpa_bins[1:11],np.divide(gpa_accepts,np.sum(gpa_accepts)))
+plt.xlabel("GPA")
+plt.show()
+plt.legend()     
+
