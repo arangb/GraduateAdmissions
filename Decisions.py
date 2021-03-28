@@ -59,8 +59,10 @@ df_deferrals=pandas.DataFrame(d);
 #data storage
 accepts_days=np.empty([0]);
 total_accepts=np.empty([0]);
+accepts_years=np.empty([0]);
 declines_days=np.empty([0]);
 total_declines=np.empty([0]);
+declines_years=np.empty([0]);
 for year in years:
     criteria=(df['Period Year']==year) & (df['Decision 1']=="Admit/Accept Offer") & ~(df['Name'].isin(df_deferrals['Name']))
     df_accepts = df[criteria].reset_index(drop = True).dropna(how='all', axis=1)
@@ -80,16 +82,23 @@ for year in years:
         
         total_accepts=np.append(total_accepts,accepts)
         accepts_days=np.append(accepts_days,np.sort(df_accepts.days_before))
+        accepts_years=np.append(accepts_years,np.linspace(year,year,len(accepts)))
     
         total_declines=np.append(total_declines,declines)
         declines_days=np.append(declines_days,np.sort(df_declines.days_before))
+        declines_years=np.append(declines_years,np.linspace(year,year,len(declines)))
+
     else:
         current_accepts=len(df_accepts)
         current_declines=len(df_declines)
 
 #Fitting function        
 def func(x, a, b, c):
-    return a * np.exp(-b * x) + c
+    return a * np.exp(-b * x) +c
+
+#Double exponential fitting function. This seems to give a more unbiased estimate
+def func2(x, a, b, c):
+    return a * np.exp(-b * x) +(1-a)*np.exp(-c*x)
 
 #Fit accepts
 xdata=accepts_days
@@ -98,9 +107,9 @@ inds=np.argsort(xdata)
 xdata=xdata[inds]
 ydata=ydata[inds]
 #Lower and upper bounds for fitting. Below, the magnitude is constrained. 
-lb=[1,0,0]
-ub=[1+1e-5,100,1]
-popt_accept,pcov= curve_fit(func, xdata, ydata,bounds=(lb,ub))
+lb=[0,0,0]
+ub=[1+1e-5,0.1,1]
+popt_accept,pcov= curve_fit(func2, xdata, ydata,bounds=(lb,ub))
  
 plt.figure(5,figsize=(10,10))    
 plt.clf()
@@ -108,7 +117,7 @@ plt.scatter(xdata,ydata,label='Data')
 plt.xlabel("Days before 4/6")
 plt.ylabel("Normalized cumulative accepts")
 plt.title("Accepts")
-plt.plot(xdata, func(xdata, *popt_accept), 'r-',
+plt.plot(xdata, func2(xdata, *popt_accept), 'r-',
          label='fit: a=%5.3f, b=%5.3f, c=%5.3f' % tuple(popt_accept))
 plt.show()
 plt.legend()
@@ -117,10 +126,13 @@ plt.legend()
 def func_accept(x, a):
     return a * np.exp(-popt_accept[1] * x) + popt_accept[2]
 
+def func_accept2(x, a):
+    return a * func2(x,*popt_accept)
+
 #now fit the data from the current year
 xdata=np.sort(df_accepts.days_before)
 ydata=np.linspace(1,1/len(df_accepts),len(df_accepts))
-popt_accept_current,pcov=curve_fit(func_accept, xdata, ydata)
+popt_accept_current,pcov=curve_fit(func_accept2, xdata, ydata)
 
 # =============================================================================
 # plt.figure(6,figsize=(10,10))    
@@ -137,7 +149,7 @@ popt_accept_current,pcov=curve_fit(func_accept, xdata, ydata)
 
 print("Calculated accepts from fitting: %3.3f and direct calculation: %3.3f" %
       (popt_accept_current[0]*current_accepts,
-      current_accepts/func(days_to_deadline,*popt_accept)))
+      current_accepts/func2(days_to_deadline,*popt_accept)))
 
 #Fit declines
 xdata=declines_days
@@ -145,7 +157,7 @@ ydata=total_declines
 inds=np.argsort(xdata)
 xdata=xdata[inds]
 ydata=ydata[inds]
-popt_decline,pcov = curve_fit(func, xdata, ydata,bounds=(lb,ub))
+popt_decline,pcov = curve_fit(func2, xdata, ydata,bounds=(lb,ub))
  
 plt.figure(6,figsize=(10,10))    
 plt.clf()
@@ -153,7 +165,7 @@ plt.scatter(xdata,ydata,label='Data')
 plt.xlabel("Days before 4/6")
 plt.ylabel("Normalized cumulative declines")
 plt.title("Declines")
-plt.plot(xdata, func(xdata, *popt_decline), 'r-',
+plt.plot(xdata, func2(xdata, *popt_decline), 'r-',
          label='fit: a=%5.3f, b=%5.3f, c=%5.3f' % tuple(popt_decline))
 plt.show()
 plt.legend()
@@ -162,11 +174,14 @@ plt.legend()
 def func_decline(x, a):
     return a * np.exp(-popt_decline[1] * x) + popt_decline[2]
 
+def func_decline2(x, a):
+    return a * func2(x,*popt_decline)
+
 
 #now fit the data from the current year
 xdata=np.sort(df_declines.days_before)
 ydata=np.linspace(1,1/len(df_declines),len(df_declines))
-popt_decline_current,pcov=curve_fit(func_decline, xdata, ydata)
+popt_decline_current,pcov=curve_fit(func_decline2, xdata, ydata)
 
 # =============================================================================
 # plt.figure(8,figsize=(10,10))    
@@ -183,7 +198,44 @@ popt_decline_current,pcov=curve_fit(func_decline, xdata, ydata)
 
 print("Calculated declines from fitting: %3.3f and direct calculation: %3.3f" %
       (popt_decline_current[0]*current_declines,
-      current_declines/func(days_to_deadline,*popt_decline)))
+      current_declines/func2(days_to_deadline,*popt_decline)))
+
+
+#Find out how good our prediction is
+plt.figure(9,figsize=(10,10))    
+plt.clf()
+for year in years[0:len(years)-2]:
+    xdata=accepts_days[accepts_years==year]
+    ydata=total_accepts[accepts_years==year]
+
+#xdata=accepts_days
+#ydata=total_accepts
+    plt.plot(xdata, np.divide(ydata,func2(xdata, *popt_accept)),label=('%d' % year))
+#xdata=declines_days
+#ydata=total_declines
+#plt.scatter(xdata, np.divide(ydata,func2(xdata, *popt_decline)),label='Declines')
+
+plt.xlabel("Days before 4/6")
+plt.ylabel("Predicted/actual")
+plt.title("Accept prediction accuracy")
+plt.ylim(0,2)
+plt.show()
+plt.legend()
+
+#Find out how good our prediction is
+plt.figure(10,figsize=(10,10))    
+plt.clf()
+for year in years[0:len(years)-2]:
+    xdata=declines_days[declines_years==year]
+    ydata=total_declines[declines_years==year]
+    plt.plot(xdata, np.divide(ydata,func2(xdata, *popt_decline)),label=('%d' % year))
+
+plt.xlabel("Days before 4/6")
+plt.ylabel("Predicted/actual")
+plt.title("Decline prediction accuracy")
+plt.ylim(0,2)
+plt.show()
+plt.legend()
 
 #Now let's analyze decision times according to GPA to find out how to use the wait list.
 gpa_bins=np.linspace(3,4,11)
