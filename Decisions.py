@@ -96,7 +96,7 @@ for year in years:
 def func(x, a, b, c):
     return a * np.exp(-b * x) +c
 
-#Double exponential fitting function. This seems to give a more unbiased estimate
+#Double exponential fitting function. This seems to give a more unbiased estimate.
 def func2(x, a, b, c):
     return a * np.exp(-b * x) +(1-a)*np.exp(-c*x)
 
@@ -108,7 +108,7 @@ xdata=xdata[inds]
 ydata=ydata[inds]
 #Lower and upper bounds for fitting. Below, the magnitude is constrained. 
 lb=[0,0,0]
-ub=[1+1e-5,0.1,1]
+ub=[1,0.1,2]
 popt_accept,pcov= curve_fit(func2, xdata, ydata,bounds=(lb,ub))
  
 plt.figure(5,figsize=(10,10))    
@@ -170,7 +170,7 @@ plt.plot(xdata, func2(xdata, *popt_decline), 'r-',
 plt.show()
 plt.legend()
 
-#Same as above. Now only fit the intercept.
+#Same as above. Now only fit the scaling.
 def func_decline(x, a):
     return a * np.exp(-popt_decline[1] * x) + popt_decline[2]
 
@@ -207,13 +207,7 @@ plt.clf()
 for year in years[0:len(years)-2]:
     xdata=accepts_days[accepts_years==year]
     ydata=total_accepts[accepts_years==year]
-
-#xdata=accepts_days
-#ydata=total_accepts
     plt.plot(xdata, np.divide(ydata,func2(xdata, *popt_accept)),label=('%d' % year))
-#xdata=declines_days
-#ydata=total_declines
-#plt.scatter(xdata, np.divide(ydata,func2(xdata, *popt_decline)),label='Declines')
 
 plt.xlabel("Days before 4/6")
 plt.ylabel("Predicted/actual")
@@ -225,7 +219,7 @@ plt.legend()
 #Find out how good our prediction is
 plt.figure(10,figsize=(10,10))    
 plt.clf()
-for year in years[0:len(years)-2]:
+for year in years[0:len(years)-1]:
     xdata=declines_days[declines_years==year]
     ydata=total_declines[declines_years==year]
     plt.plot(xdata, np.divide(ydata,func2(xdata, *popt_decline)),label=('%d' % year))
@@ -237,7 +231,7 @@ plt.ylim(0,2)
 plt.show()
 plt.legend()
 
-#Now let's analyze decision times according to GPA to find out how to use the wait list.
+#Analyze decision times according to GPA to find out how to use the wait list.
 gpa_bins=np.linspace(3,4,11)
 gpa_accepts_norm=np.empty([0]);
 gpa_accepts=np.empty([0]);
@@ -249,7 +243,6 @@ gpa_days_decline=np.empty([0]);
 for gpa in gpa_bins[0:10]:
         criteria=(df['Institution 1 GPA (4.0 Scale)'] > gpa) & (df['Institution 1 GPA (4.0 Scale)'] <= gpa+0.1) & (df['Decision 1']=="Admit/Accept Offer")   
         df_accepts = df[criteria].reset_index(drop = True).dropna(how='all', axis=1)
-        
         
         criteria=(df['Institution 1 GPA (4.0 Scale)'] > gpa) & (df['Institution 1 GPA (4.0 Scale)'] <= gpa+0.1) & (df['Decision 1']=="Admit/Decline Offer")   
         df_declines = df[criteria].reset_index(drop = True).dropna(how='all', axis=1)
