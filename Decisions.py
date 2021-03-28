@@ -204,12 +204,12 @@ print("Calculated declines from fitting: %3.3f and direct calculation: %3.3f" %
 #Find out how good our prediction is
 plt.figure(9,figsize=(10,10))    
 plt.clf()
-for year in years[0:len(years)-2]:
+for year in years[0:len(years)-1]:
     xdata=accepts_days[accepts_years==year]
     ydata=total_accepts[accepts_years==year]
     plt.plot(xdata, np.divide(ydata,func2(xdata, *popt_accept)),label=('%d' % year))
 
-plt.xlabel("Days before 4/6")
+plt.xlabel("Days before 4/16")
 plt.ylabel("Predicted/actual")
 plt.title("Accept prediction accuracy")
 plt.ylim(0,2)
@@ -224,7 +224,7 @@ for year in years[0:len(years)-1]:
     ydata=total_declines[declines_years==year]
     plt.plot(xdata, np.divide(ydata,func2(xdata, *popt_decline)),label=('%d' % year))
 
-plt.xlabel("Days before 4/6")
+plt.xlabel("Days before 4/16")
 plt.ylabel("Predicted/actual")
 plt.title("Decline prediction accuracy")
 plt.ylim(0,2)
@@ -238,7 +238,6 @@ gpa_accepts=np.empty([0]);
 
 gpa_days_accept=np.empty([0]);
 gpa_days_decline=np.empty([0]);
-
 
 for gpa in gpa_bins[0:10]:
         criteria=(df['Institution 1 GPA (4.0 Scale)'] > gpa) & (df['Institution 1 GPA (4.0 Scale)'] <= gpa+0.1) & (df['Decision 1']=="Admit/Accept Offer")   
