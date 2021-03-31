@@ -64,6 +64,7 @@ declines_days=np.empty([0]);
 total_declines=np.empty([0]);
 declines_years=np.empty([0]);
 for year in years:
+    #TODO: make sure we don't count people from the wait list here. We should filter based on the initial offer date.
     criteria=(df['Period Year']==year) & (df['Decision 1']=="Admit/Accept Offer") & ~(df['Name'].isin(df_deferrals['Name']))
     df_accepts = df[criteria].reset_index(drop = True).dropna(how='all', axis=1)
     
@@ -204,11 +205,26 @@ print("Calculated declines from fitting: %3.3f and direct calculation: %3.3f" %
 #Find out how good our prediction is
 plt.figure(9,figsize=(10,10))    
 plt.clf()
+color_ind=0
 for year in years[0:len(years)-1]:
     xdata=accepts_days[accepts_years==year]
     ydata=total_accepts[accepts_years==year]
     plt.plot(xdata, np.divide(ydata,func2(xdata, *popt_accept)),label=('%d' % year))
+    
+    inds=np.argsort(xdata)
+    xdata=xdata[inds]
+    ydata=ydata[inds]
+    
+    for i in np.linspace(2,len(xdata),len(xdata)):
+        ind=int(i)
+        xv=xdata[0:ind]
+        yv=ydata[0:ind]
+        popt,pcov=curve_fit(func_accept2, xv, yv)
+        yval=np.divide(yv[ind-1],func_accept2(xv[ind-1], *popt))
+        plt.scatter(xv[ind-1], yval,color=('C%d' % color_ind))
 
+    color_ind=color_ind+1;
+    
 plt.xlabel("Days before 4/16")
 plt.ylabel("Predicted/actual")
 plt.title("Accept prediction accuracy")
@@ -216,17 +232,33 @@ plt.ylim(0,2)
 plt.show()
 plt.legend()
 
+
 #Find out how good our prediction is
 plt.figure(10,figsize=(10,10))    
 plt.clf()
+color_ind=0;
 for year in years[0:len(years)-1]:
     xdata=declines_days[declines_years==year]
     ydata=total_declines[declines_years==year]
     plt.plot(xdata, np.divide(ydata,func2(xdata, *popt_decline)),label=('%d' % year))
+    
+    inds=np.argsort(xdata)
+    xdata=xdata[inds]
+    ydata=ydata[inds]
+    
+    for i in np.linspace(2,len(xdata),len(xdata)):
+        ind=int(i)
+        xv=xdata[0:ind]
+        yv=ydata[0:ind]
+        popt,pcov=curve_fit(func_accept2, xv, yv)
+        yval=np.divide(yv[ind-1],func_decline2(xv[ind-1], *popt))
+        plt.scatter(xv[ind-1], yval,color=('C%d' % color_ind))
+
+    color_ind=color_ind+1;
 
 plt.xlabel("Days before 4/16")
 plt.ylabel("Predicted/actual")
-plt.title("Decline prediction accuracy")
+plt.title("Decline prediction accuracy based on calculation")
 plt.ylim(0,2)
 plt.show()
 plt.legend()
