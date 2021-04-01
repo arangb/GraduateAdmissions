@@ -99,7 +99,7 @@ def func(x, a, b, c):
 
 #Double exponential fitting function. This seems to give a more unbiased estimate.
 def func2(x, a, b, c):
-    return a * np.exp(-b * x) +(1-a)*np.exp(-c*x)
+    return a * np.exp(-x/b) +(1-a)*np.exp(-x/c)
 
 #Fit accepts
 xdata=accepts_days
@@ -109,19 +109,18 @@ xdata=xdata[inds]
 ydata=ydata[inds]
 #Lower and upper bounds for fitting. Below, the magnitude is constrained. 
 lb=[0,0,0]
-ub=[1,0.1,2]
+ub=[1,50,5]
 popt_accept,pcov= curve_fit(func2, xdata, ydata,bounds=(lb,ub))
  
 plt.figure(5,figsize=(10,10))    
 plt.clf()
-plt.scatter(xdata,ydata,label='Data')
-plt.xlabel("Days before 4/6")
+plt.scatter(xdata,ydata,label='2015-2020 data',s=6)
+plt.xlabel("Days before 4/16")
 plt.ylabel("Normalized cumulative accepts")
 plt.title("Accepts")
 plt.plot(xdata, func2(xdata, *popt_accept), 'r-',
          label='fit: a=%5.3f, b=%5.3f, c=%5.3f' % tuple(popt_accept))
 plt.show()
-plt.legend()
 
 #Fitting function for the current year's data. Uses the fitted parameters above but this time fits the scaling.
 def func_accept(x, a):
@@ -134,6 +133,12 @@ def func_accept2(x, a):
 xdata=np.sort(df_accepts.days_before)
 ydata=np.linspace(1,1/len(df_accepts),len(df_accepts))
 popt_accept_current,pcov=curve_fit(func_accept2, xdata, ydata)
+
+plt.plot(xdata,ydata/popt_accept_current[0],'-o',
+         label=('%d, %d accepts' % (current_year,np.round(popt_accept_current[0]*current_accepts))),
+         color='C2')
+plt.legend()
+plt.show()
 
 # =============================================================================
 # plt.figure(6,figsize=(10,10))    
@@ -162,8 +167,8 @@ popt_decline,pcov = curve_fit(func2, xdata, ydata,bounds=(lb,ub))
  
 plt.figure(6,figsize=(10,10))    
 plt.clf()
-plt.scatter(xdata,ydata,label='Data')
-plt.xlabel("Days before 4/6")
+plt.scatter(xdata,ydata,label='2015-2020 data',s=6)
+plt.xlabel("Days before 4/16")
 plt.ylabel("Normalized cumulative declines")
 plt.title("Declines")
 plt.plot(xdata, func2(xdata, *popt_decline), 'r-',
@@ -183,6 +188,12 @@ def func_decline2(x, a):
 xdata=np.sort(df_declines.days_before)
 ydata=np.linspace(1,1/len(df_declines),len(df_declines))
 popt_decline_current,pcov=curve_fit(func_decline2, xdata, ydata)
+
+plt.plot(xdata,ydata/popt_decline_current[0],'-o',
+         label=('%d, %d declines' % (current_year,np.round(popt_decline_current[0]*current_declines))),
+         color='C2')
+plt.legend()
+
 
 # =============================================================================
 # plt.figure(8,figsize=(10,10))    
@@ -265,7 +276,8 @@ plt.legend()
 
 #Analyze decision times according to GPA to find out how to use the wait list.
 gpa_bins=np.linspace(3,4,11)
-gpa_accepts_norm=np.empty([0]);
+gpa_diff=np.diff(gpa_bins)[0]/2
+gpa_accepts_norm=np.empty([0])
 gpa_accepts=np.empty([0]);
 
 gpa_days_accept=np.empty([0]);
@@ -286,10 +298,8 @@ for gpa in gpa_bins[0:10]:
 
 plt.figure(7,figsize=(10,10))    
 plt.clf()
-plt.scatter(gpa_bins[1:11],gpa_days_accept,label='Accepts')
-plt.plot(gpa_bins[1:11],gpa_days_accept)
-plt.scatter(gpa_bins[1:11],gpa_days_decline,label='Declines')
-plt.plot(gpa_bins[1:11],gpa_days_decline)
+plt.plot(gpa_bins[1:11]-gpa_diff,gpa_days_accept,'o-',label='Accepts')
+plt.plot(gpa_bins[1:11]-gpa_diff,gpa_days_decline,'o-',label='Declines')
 plt.xlabel("GPA")
 plt.ylabel("Median days before 4/16 decision was made")
 plt.show()
@@ -297,10 +307,8 @@ plt.legend()
 
 plt.figure(8,figsize=(10,10))    
 plt.clf()
-plt.scatter(gpa_bins[1:11],gpa_accepts_norm,label='Yield')
-plt.plot(gpa_bins[1:11],gpa_accepts_norm)
-plt.scatter(gpa_bins[1:11],np.divide(gpa_accepts,np.sum(gpa_accepts)),label='Weight')
-plt.plot(gpa_bins[1:11],np.divide(gpa_accepts,np.sum(gpa_accepts)))
+plt.plot(gpa_bins[1:11]-gpa_diff,gpa_accepts_norm,'o-',label='Probability to accept')
+plt.plot(gpa_bins[1:11]-gpa_diff,np.divide(gpa_accepts,np.sum(gpa_accepts)),'o-',label='Fraction of overall UR PAS students')
 plt.xlabel("GPA")
 plt.show()
 plt.legend()     
