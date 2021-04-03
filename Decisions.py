@@ -43,6 +43,7 @@ df['delta_T']=df['due_date']-df['Decision 1 Confirmed Date']
 df['days_before']=df['delta_T'].dt.days+df['delta_T'].dt.seconds/(60*60*24)
 
 #Remove instances where something happened after the admissions deadline, but keep the deferrals
+#This potentially introduces some bias into the predictions, but I'm not exactly sure how to handle it.
 criteria=(df.days_before>0) | (df['Decision 1']=="Admit/Defer")
 df = df[criteria].reset_index(drop = True).dropna(how='all', axis=1)
 
@@ -107,7 +108,7 @@ ydata=total_accepts
 inds=np.argsort(xdata)
 xdata=xdata[inds]
 ydata=ydata[inds]
-#Lower and upper bounds for fitting. Below, the magnitude is constrained. 
+#Lower and upper bounds for fitting. 
 lb=[0,0,0]
 ub=[1,50,5]
 popt_accept,pcov= curve_fit(func2, xdata, ydata,bounds=(lb,ub))
@@ -129,13 +130,13 @@ def func_accept(x, a):
 def func_accept2(x, a):
     return a * func2(x,*popt_accept)
 
-#now fit the data from the current year
+#Fit the data from the current year to predict the number of accepts
 xdata=np.sort(df_accepts.days_before)
-ydata=np.linspace(1,1/len(df_accepts),len(df_accepts))
+ydata=np.linspace(len(df_accepts),1,len(df_accepts))
 popt_accept_current,pcov=curve_fit(func_accept2, xdata, ydata)
 
 plt.plot(xdata,ydata/popt_accept_current[0],'-o',
-         label=('%d, %d accepts' % (current_year,np.round(popt_accept_current[0]*current_accepts))),
+         label=('%d, %d accepts' % (current_year,np.round(popt_accept_current[0]))),
          color='C2')
 plt.legend()
 plt.show()
@@ -154,7 +155,7 @@ plt.show()
 # =============================================================================
 
 print("Calculated accepts from fitting: %3.3f and direct calculation: %3.3f" %
-      (popt_accept_current[0]*current_accepts,
+      (popt_accept_current[0],
       current_accepts/func2(days_to_deadline,*popt_accept)))
 
 #Fit declines
@@ -184,13 +185,13 @@ def func_decline2(x, a):
     return a * func2(x,*popt_decline)
 
 
-#now fit the data from the current year
+#Fit the data from the current year to predict the number of decliens
 xdata=np.sort(df_declines.days_before)
-ydata=np.linspace(1,1/len(df_declines),len(df_declines))
+ydata=np.linspace(len(df_declines),1,len(df_declines))
 popt_decline_current,pcov=curve_fit(func_decline2, xdata, ydata)
 
 plt.plot(xdata,ydata/popt_decline_current[0],'-o',
-         label=('%d, %d declines' % (current_year,np.round(popt_decline_current[0]*current_declines))),
+         label=('%d, %d declines' % (current_year,np.round(popt_decline_current[0]))),
          color='C2')
 plt.legend()
 
@@ -209,33 +210,67 @@ plt.legend()
 # =============================================================================
 
 print("Calculated declines from fitting: %3.3f and direct calculation: %3.3f" %
-      (popt_decline_current[0]*current_declines,
+      (popt_decline_current[0],
       current_declines/func2(days_to_deadline,*popt_decline)))
 
 
-#Find out how good our prediction is
+#Find out how good our prediction for accepts is
 plt.figure(9,figsize=(10,10))    
 plt.clf()
 color_ind=0
+aa=np.empty([0]);
+dd=np.empty([0]);
 for year in years[0:len(years)-1]:
     xdata=accepts_days[accepts_years==year]
     ydata=total_accepts[accepts_years==year]
-    plt.plot(xdata, np.divide(ydata,func2(xdata, *popt_accept)),label=('%d' % year))
+    ydata=np.divide(ydata,ydata[len(ydata)-1]) 
+    #Convert back to actual numbers of accepts from fractional accepts
+    n_accepts=len(ydata)
     
-    inds=np.argsort(xdata)
+    #One way to predict the number of accepts 
+    #is the (total number of accepts at that day)/func2(day,pop_accept).
+    predicted_accepts=np.divide(ydata,func2(xdata, *popt_accept))
+    accept_error=np.divide(predicted_accepts,n_accepts)
+    plt.plot(xdata, accept_error,label=('%d' % year))
+    
+    inds=np.flipud(np.argsort(xdata)) #Short in descending order
     xdata=xdata[inds]
     ydata=ydata[inds]
     
+    #Another way to predict the number of accepts is to fit the data from that year
     for i in np.linspace(2,len(xdata),len(xdata)):
+        #Loop through accepts, and generate incomplete data sets as each new accept comes int
         ind=int(i)
         xv=xdata[0:ind]
         yv=ydata[0:ind]
-        popt,pcov=curve_fit(func_accept2, xv, yv)
-        yval=np.divide(yv[ind-1],func_accept2(xv[ind-1], *popt))
-        plt.scatter(xv[ind-1], yval,color=('C%d' % color_ind))
 
-    color_ind=color_ind+1;
+        #Fit the incomplete dataset to extract a predicted number of accepts.
+        popt,pcov=curve_fit(func_accept2, xv, yv)
+        
+        #Based on the incomplete dataset, predicted the number of accepts. 
+        predicted_accepts=popt[0]
+        accept_error=predicted_accepts/n_accepts
+        plt.scatter(xv[ind-1], accept_error,color=('C%d' % color_ind))
+        aa=np.append(aa,accept_error)
+        dd=np.append(dd,xv[ind-1])
+
+    color_ind=color_ind+1
     
+    
+#Now see how the trend for this year has changed
+#Sort both days and accepts in decending order
+xdata=np.flipud(np.sort(df_accepts.days_before))
+ydata=np.flipud(np.linspace(len(df_accepts),1,len(df_accepts)))
+
+for i in np.linspace(2,len(xdata),len(xdata)):
+    ind=int(i)
+    xv=xdata[0:ind]
+    yv=ydata[0:ind]
+    popt,pcov=curve_fit(func_accept2, xv, yv)
+    predicted_accepts=popt[0]
+    accept_error=predicted_accepts/popt_accept_current[0]
+    plt.scatter(xv[ind-1], accept_error, color=('C%d' % color_ind))
+
 plt.xlabel("Days before 4/16")
 plt.ylabel("Predicted/actual")
 plt.title("Accept prediction accuracy")
@@ -243,17 +278,29 @@ plt.ylim(0,2)
 plt.show()
 plt.legend()
 
+#Find out how accurate historical fitting would be on this day.
+inds=(dd<(days_to_deadline+2)) & (dd>(days_to_deadline-2))
+print("Historical accept prediction accuracy is %3.3f +/- %3.3f" % (np.mean(aa[inds]),np.std(aa[inds])))
 
-#Find out how good our prediction is
+#Find out how good our prediction for declines is
 plt.figure(10,figsize=(10,10))    
 plt.clf()
 color_ind=0;
+aa=np.empty([0]);
+dd=np.empty([0]);
 for year in years[0:len(years)-1]:
     xdata=declines_days[declines_years==year]
     ydata=total_declines[declines_years==year]
-    plt.plot(xdata, np.divide(ydata,func2(xdata, *popt_decline)),label=('%d' % year))
+    ydata=np.divide(ydata,ydata[len(ydata)-1]) #Convert back to actual numbers
+    n_declines=len(ydata)
     
-    inds=np.argsort(xdata)
+    #The expected number of declines at any give time is the 
+    # is the total number of declines at that day/func2(day,pop_declines).
+    predicted_declines=np.divide(ydata,func2(xdata, *popt_decline))
+    declines_error=np.divide(predicted_declines,n_declines)
+    plt.plot(xdata, declines_error,label=('%d' % year))    
+    
+    inds=np.flipud(np.argsort(xdata))
     xdata=xdata[inds]
     ydata=ydata[inds]
     
@@ -261,11 +308,32 @@ for year in years[0:len(years)-1]:
         ind=int(i)
         xv=xdata[0:ind]
         yv=ydata[0:ind]
-        popt,pcov=curve_fit(func_accept2, xv, yv)
-        yval=np.divide(yv[ind-1],func_decline2(xv[ind-1], *popt))
-        plt.scatter(xv[ind-1], yval,color=('C%d' % color_ind))
+        
+        #Fit the incomplete dataset to extract a predicted number of accepts.
+        popt,pcov=curve_fit(func_decline2, xv, yv)
+        
+        #Based on the limited dataset, predicted the number of accepts. 
+        predicted_declines=popt[0]
+        decline_error=predicted_declines/n_declines
+        plt.scatter(xv[ind-1], decline_error,color=('C%d' % color_ind))
+        aa=np.append(aa,decline_error)
+        dd=np.append(dd,xv[ind-1])
 
     color_ind=color_ind+1;
+    
+#Now see how the trend for this year has changed
+#Sort both days and declines in decending order
+xdata=np.flipud(np.sort(df_declines.days_before))
+ydata=np.flipud(np.linspace(len(df_declines),1,len(df_declines)))
+
+for i in np.linspace(2,len(xdata),len(xdata)):
+    ind=int(i)
+    xv=xdata[0:ind]
+    yv=ydata[0:ind]
+    popt,pcov=curve_fit(func_decline2, xv, yv)
+    predicted_declines=popt[0]
+    decline_error=predicted_declines/popt_decline_current[0]
+    plt.scatter(xv[ind-1], decline_error, color=('C%d' % color_ind))
 
 plt.xlabel("Days before 4/16")
 plt.ylabel("Predicted/actual")
@@ -273,6 +341,10 @@ plt.title("Decline prediction accuracy based on calculation")
 plt.ylim(0,2)
 plt.show()
 plt.legend()
+
+#Find out how accurate historical fitting would be on this day.
+inds=(dd<(days_to_deadline+2)) & (dd>(days_to_deadline-2))
+print("Historical decline prediction accuracy is %3.3f +/- %3.3f" % (np.mean(aa[inds]),np.std(aa[inds])))
 
 #Analyze decision times according to GPA to find out how to use the wait list.
 gpa_bins=np.linspace(3,4,11)
