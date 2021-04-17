@@ -25,6 +25,7 @@ file_name= fd.askopenfilename(
     filetypes=filetypes)
 
 plt.rc('font', family='sans-serif', size=16)
+plt.close('all')
 
 #The data file should be an exported query with at least following fields:
 # Name,Decision 1 Confirmed Date,Decision 1,Institution 1 GPA (4.0 Scale),Period Year
@@ -47,13 +48,13 @@ df['days_before']=df['delta_T'].dt.days+df['delta_T'].dt.seconds/(60*60*24)
 criteria=(df.days_before>0) | (df['Decision 1']=="Admit/Defer")
 df = df[criteria].reset_index(drop = True).dropna(how='all', axis=1)
 
-#We will need to loop over years
+#Pull out the different years, and find this year.
 years=np.sort(df['Period Year'].unique())
 current_year=datetime.now().year
 d=datetime(current_year,4,16)-datetime.now()
 days_to_deadline=d.days+d.seconds/(60*60*24)
 
-#Used to make sure we don't double count deferrals
+#Temporary data fram used to make sure we don't double count deferrals
 d = {'Name': [""]}
 df_deferrals=pandas.DataFrame(d);
 
@@ -65,11 +66,18 @@ declines_days=np.empty([0]);
 total_declines=np.empty([0]);
 declines_years=np.empty([0]);
 for year in years:
-    #TODO: make sure we don't count people from the wait list here. We should filter based on the initial offer date.
+    #TODO: make sure we don't count people from the wait list here. 
+    #We should filter based on the initial offer date.
     criteria=(df['Period Year']==year) & (df['Decision 1']=="Admit/Accept Offer") & ~(df['Name'].isin(df_deferrals['Name']))
     df_accepts = df[criteria].reset_index(drop = True).dropna(how='all', axis=1)
     
-    criteria=(df['Period Year']==year) & (df['Decision 1']=="Admit/Decline Offer")
+    if year < current_year:
+        criteria=(df['Period Year']==year) & ((df['Decision 1']=="Admit/Decline Offer") 
+         | (df['Decision 1']=="Withdraw")| (df['Decision 1']=="Admit"))
+    else:
+        criteria=(df['Period Year']==year) & ((df['Decision 1']=="Admit/Decline Offer") 
+         | (df['Decision 1']=="Withdraw"))
+            
     df_declines = df[criteria].reset_index(drop = True).dropna(how='all', axis=1)
     
     criteria=(df['Period Year']==year) & (df['Decision 1']=="Admit/Defer")
@@ -90,11 +98,11 @@ for year in years:
         declines_days=np.append(declines_days,np.sort(df_declines.days_before))
         declines_years=np.append(declines_years,np.linspace(year,year,len(declines)))
 
-    else:
+    if year == current_year:
         current_accepts=len(df_accepts)
         current_declines=len(df_declines)
 
-#Fitting function        
+#Single-exponential fitting function        
 def func(x, a, b, c):
     return a * np.exp(-b * x) +c
 
@@ -123,10 +131,12 @@ plt.plot(xdata, func2(xdata, *popt_accept), 'r-',
          label='fit: a=%5.3f, b=%5.3f, c=%5.3f' % tuple(popt_accept))
 plt.show()
 
-#Fitting function for the current year's data. Uses the fitted parameters above but this time fits the scaling.
+#Fitting function for the current year's data. 
+#Uses the fitted parameters above but this time fits the scaling.
 def func_accept(x, a):
     return a * np.exp(-popt_accept[1] * x) + popt_accept[2]
 
+#Scale the double exponential
 def func_accept2(x, a):
     return a * func2(x,*popt_accept)
 
@@ -140,19 +150,6 @@ plt.plot(xdata,ydata/popt_accept_current[0],'-o',
          color='C2')
 plt.legend()
 plt.show()
-
-# =============================================================================
-# plt.figure(6,figsize=(10,10))    
-# plt.clf()
-# plt.scatter(xdata,ydata,label='Data')
-# plt.xlabel("Days before 4/6")
-# plt.ylabel("Normalized cumulative accepts")
-# plt.title("Current accepts")
-# plt.plot(xdata, func_accept(xdata, *popt_accept_current), 'r-',
-#          label='fit: a=%5.3f' % tuple(popt_accept_current))
-# plt.show()
-# plt.legend()
-# =============================================================================
 
 print("Calculated accepts from fitting: %3.3f and direct calculation: %3.3f" %
       (popt_accept_current[0],
@@ -177,13 +174,11 @@ plt.plot(xdata, func2(xdata, *popt_decline), 'r-',
 plt.show()
 plt.legend()
 
-#Same as above. Now only fit the scaling.
 def func_decline(x, a):
     return a * np.exp(-popt_decline[1] * x) + popt_decline[2]
 
 def func_decline2(x, a):
     return a * func2(x,*popt_decline)
-
 
 #Fit the data from the current year to predict the number of decliens
 xdata=np.sort(df_declines.days_before)
@@ -194,20 +189,6 @@ plt.plot(xdata,ydata/popt_decline_current[0],'-o',
          label=('%d, %d declines' % (current_year,np.round(popt_decline_current[0]))),
          color='C2')
 plt.legend()
-
-
-# =============================================================================
-# plt.figure(8,figsize=(10,10))    
-# plt.clf()
-# plt.scatter(xdata,ydata,label='Data')
-# plt.xlabel("Days before 4/6")
-# plt.ylabel("Normalized cumulative declines")
-# plt.title("Current declines")
-# plt.plot(xdata, func_decline(xdata, *popt_decline_current), 'r-',
-#          label='fit: a=%5.3f' % tuple(popt_decline_current))
-# plt.show()
-# plt.legend()
-# =============================================================================
 
 print("Calculated declines from fitting: %3.3f and direct calculation: %3.3f" %
       (popt_decline_current[0],
@@ -256,7 +237,6 @@ for year in years[0:len(years)-1]:
 
     color_ind=color_ind+1
     
-    
 #Now see how the trend for this year has changed
 #Sort both days and accepts in decending order
 xdata=np.flipud(np.sort(df_accepts.days_before))
@@ -280,7 +260,8 @@ plt.legend()
 
 #Find out how accurate historical fitting would be on this day.
 inds=(dd<(days_to_deadline+2)) & (dd>(days_to_deadline-2))
-print("Historical accept prediction accuracy is %3.3f +/- %3.3f" % (np.mean(aa[inds]),np.std(aa[inds])))
+delta=np.max(aa[inds])-np.min(aa[inds])
+print("Historical accept prediction accuracy is %3.3f +/- %3.3f" % (np.mean(aa[inds]),delta/2))
 
 #Find out how good our prediction for declines is
 plt.figure(10,figsize=(10,10))    
@@ -344,7 +325,8 @@ plt.legend()
 
 #Find out how accurate historical fitting would be on this day.
 inds=(dd<(days_to_deadline+2)) & (dd>(days_to_deadline-2))
-print("Historical decline prediction accuracy is %3.3f +/- %3.3f" % (np.mean(aa[inds]),np.std(aa[inds])))
+delta=np.max(aa[inds])-np.min(aa[inds])
+print("Historical decline prediction accuracy is %3.3f +/- %3.3f" % (np.mean(aa[inds]),delta/2))
 
 #Analyze decision times according to GPA to find out how to use the wait list.
 gpa_bins=np.linspace(3,4,11)
