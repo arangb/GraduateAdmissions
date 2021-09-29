@@ -2,12 +2,11 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
-sys.path.append("/home/aran/core/Utils/")
 from BinomialEfficiency import BinomialEfficiency 
 plt.rc('font', family='sans-serif', size=16)
 
-df=pd.read_csv('ALL_placement.csv')
-# These are the columns: 'Name','YearEntered','GraduationTime', 'WithdrawalTime','TA_semesters','LOA_terms','PreSummer','Advisor'
+header_list=['Name','YearEntered','GraduationTime', 'WithdrawalTime','TA_semesters','LOA_terms','PreSummer','Advisor']
+df=pd.read_csv('placement_04-11.csv',names=header_list)
 
 # Let's use only the years for which we have most data:
 df=df[df['YearEntered']<2012]
