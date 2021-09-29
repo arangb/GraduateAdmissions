@@ -79,7 +79,6 @@ for sheet_name in sorted(xls.sheet_names): #['2004']:
             else:
                 dfadvisor.iat[i,j]=np.nan # if they match, we set them to nan
     dfadvisor=dfadvisor.stack().groupby(level=0).apply(lambda x: x.unique().tolist()) # This returns a Series with lists as entries
-    print(dfadvisor)
     advisor=[','.join(x) for x in dfadvisor] # just make each list a single string with commas separating
     # We have many cases of '-,Frank' or 'Frank,-' this will remove the hyphen:
     advisor=[x.replace('-,','').replace(',-','') for x in advisor]
